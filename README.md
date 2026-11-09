@@ -3,6 +3,22 @@
 > The e-commerce plugin for AI agents. 商品搜索、比价、购买链接、订单履约——淘宝/京东/拼多多 → 任何 AI Agent。
 > 设计文档：agentmall 仓 DESIGN-海外Agent电商网关调研-20261014.md 与 DESIGN-Agent电商网关-20261014.md（副本在 docs/）
 
+## 🌐 Remote MCP Server (live)
+
+**Endpoint**: `https://mcp.baydeep.com/mcp` (Streamable HTTP) · REST: `https://api.baydeep.com/v1`
+
+9 tools: `shelf_search` · `shelf_item` · `buy_link` · `flight_search` · `mint_free_key` (zero-signup API key) · `whoami` · `usage` · `topup_mock` · `list_categories`. 9,000+ live products (AliExpress affiliate) + flight fares (Travelpayouts). Consumers shop at [leapbest.com](https://leapbest.com).
+
+```json
+{
+  "mcpServers": {
+    "baydeep": {
+      "url": "https://mcp.baydeep.com/mcp"
+    }
+  }
+}
+```
+
 ## 域名与品牌
 
 - 主域：**baydeep.com**（Deep 家族：FlowDeep 对话 / WorkDeep 办公 / **BayDeep 购物网关**）
