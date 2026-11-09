@@ -85,9 +85,19 @@ function iso(daysAhead) {
 /* 机票：按航线列表抓 prices_for_dates（每航线一次调用，返回多条报价） */
 async function flightPrices(opts = {}) {
   const routes = opts.routes || [
+    // 亚洲内
     ['PEK', 'SIN'], ['SHA', 'NRT'], ['CAN', 'BKK'], ['PVG', 'ICN'],
-    ['JFK', 'LHR'], ['LAX', 'NRT'], ['SIN', 'BKK'], ['HKG', 'TPE'],
-    ['FRA', 'PEK'], ['LHR', 'HKG'],
+    ['SIN', 'BKK'], ['HKG', 'TPE'], ['PEK', 'ICN'], ['PVG', 'SIN'],
+    ['CAN', 'KUL'], ['HKG', 'BKK'], ['PEK', 'NRT'], ['SHA', 'HKG'],
+    ['TPE', 'NRT'], ['KUL', 'SIN'], ['ICN', 'BKK'], ['PVG', 'TPE'],
+    // 跨洋（欧/美）
+    ['JFK', 'LHR'], ['LAX', 'NRT'], ['FRA', 'PEK'], ['LHR', 'HKG'],
+    ['JFK', 'CDG'], ['LAX', 'ICN'], ['SFO', 'NRT'], ['JFK', 'FCO'],
+    ['LHR', 'JFK'], ['CDG', 'PVG'], ['FRA', 'HKG'], ['AMS', 'PEK'],
+    ['SEA', 'PEK'], ['YYZ', 'PEK'], ['JFK', 'IST'], ['LAX', 'SYD'],
+    // 东南亚/大洋洲/中东
+    ['PEK', 'DPS'], ['PVG', 'SYD'], ['SIN', 'SYD'], ['BKK', 'DPS'],
+    ['DXB', 'BKK'], ['DOH', 'SIN'], ['IST', 'PEK'], ['HKG', 'DPS'],
   ];
   const currency = (opts.currency || 'usd').toLowerCase();
   const depart = opts.depart_date || iso(7);
@@ -96,7 +106,7 @@ async function flightPrices(opts = {}) {
   const errs = [];
   for (const [origin, destination] of routes) {
     const u = `${BASE}/aviasales/v3/prices_for_dates?origin=${origin}&destination=${destination}` +
-      `&departure_at=${depart}${oneWay ? '&one_way=true' : ''}&currency=${currency}&token=${TOKEN}&limit=5&sorting=price`;
+      `&departure_at=${depart}${oneWay ? '&one_way=true' : ''}&currency=${currency}&token=${TOKEN}&limit=8&sorting=price`;
     try {
       const r = await getJson(u);
       const arr = (r && r.data) || [];

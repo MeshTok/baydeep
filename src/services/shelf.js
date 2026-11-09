@@ -56,6 +56,9 @@ function getItem(goodsId) {
 
 // upsert：同 goods_id 覆盖（价格/销量/佣金刷新），seed 项不被真实同步顶掉时保留 stocked_at 首次入库时间
 function upsertItems(items, opts = {}) {
+  // 防跨进程覆盖：本进程内存快照可能陈旧（别的 cron 刚写入过），写回前以磁盘最新为底
+  const fresh = store.reload('shelf');
+  if (fresh && Array.isArray(fresh.items)) coll.data.items = fresh.items;
   const byId = new Map(coll.data.items.map((it) => [it.goods_id, it]));
   let added = 0, updated = 0;
   for (const it of items || []) {

@@ -12,6 +12,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const config = require('./config');
 const shelf = require('./services/shelf');
+const store = require('./store');
 const ali = require('./adapters/aliexpress');
 
 const PORT = parseInt(process.env.PORT || '3790', 10);
@@ -48,21 +49,35 @@ function ipOf(req) {
 }
 
 async function goRedirect(req, res, id) {
-  if (!/^\d{6,20}$/.test(id)) { res.writeHead(400); return res.end('bad id'); }
+  if (!/^[A-Za-z0-9_-]{4,64}$/.test(id)) { res.writeHead(400); return res.end('bad id'); }
   let url = goCache[id];
   if (!url) {
-    const it = shelf.getItem(id);
+    let it = shelf.getItem(id);
+    if (!it || !it.goods_url) {
+      // 内存快照可能落后于磁盘（cron 刚入库的新品/机票）：miss 时热重载一次再查
+      const fresh = store.reload('shelf');
+      if (fresh && Array.isArray(fresh.items)) {
+        store.collection('shelf', { items: [], updated_at: null }).data = fresh;
+        it = shelf.getItem(id);
+      }
+    }
     if (!it || !it.goods_url) { res.writeHead(404); return res.end('not found'); }
-    // 干净 URL（goods_url 自带 pdp_npi 参数会让转链接口报错）
-    const cleanUrl = `https://www.aliexpress.com/item/${id}.html`;
-    try {
-      const r = await ali.convertLink([cleanUrl], { trackingId: TRACKING_ID });
-      // convertLink 返回 {links:[{click_url,source}], click_url}——对象不是数组！
-      url = (r && (r.click_url || (r.links && r.links[0] && r.links[0].click_url))) || cleanUrl;
-      console.log('[go]', id, 'tracking=' + TRACKING_ID, '→', (url || '').slice(0, 80));
-    } catch (e) {
-      console.error('[go-ERR]', id, e.message.slice(0, 150));
+    if (it.platform === 'travelpayouts' || (it.category_name || '').toLowerCase() === 'flights') {
+      // 机票：goods_url 已带 Travelpayouts marker 归因，直接跳 Aviasales
       url = it.goods_url;
+      console.log('[go]', id, 'flight →', (url || '').slice(0, 80));
+    } else {
+      // 干净 URL（goods_url 自带 pdp_npi 参数会让转链接口报错）
+      const cleanUrl = `https://www.aliexpress.com/item/${id}.html`;
+      try {
+        const r = await ali.convertLink([cleanUrl], { trackingId: TRACKING_ID });
+        // convertLink 返回 {links:[{click_url,source}], click_url}——对象不是数组！
+        url = (r && (r.click_url || (r.links && r.links[0] && r.links[0].click_url))) || cleanUrl;
+        console.log('[go]', id, 'tracking=' + TRACKING_ID, '→', (url || '').slice(0, 80));
+      } catch (e) {
+        console.error('[go-ERR]', id, e.message.slice(0, 150));
+        url = it.goods_url;
+      }
     }
     goCache[id] = url; goCacheDirty = true;
   }
@@ -88,7 +103,7 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'max-age=60' });
       return res.end(JSON.stringify({ top: topSearches() }));
     }
-    const m = p.match(/^\/go\/(\d{6,20})$/);
+    const m = p.match(/^\/go\/([A-Za-z0-9_-]{4,64})$/);
     if (m) return await goRedirect(req, res, m[1]);
     if (p === '/healthz') { res.writeHead(200); return res.end('ok'); }
     res.writeHead(404); res.end();

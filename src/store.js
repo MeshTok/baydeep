@@ -19,11 +19,18 @@ function load(name, fallback) {
 }
 
 function flush(name, coll) {
+  // 陈旧快照守卫：本进程从未修改过的集合绝不写盘——
+  // 否则 SIGINT/SIGTERM 的 flushAll 会把常驻进程（网关/leapbest-api）加载时的旧快照
+  // 覆盖掉 cron 们新写入的数据（2026-11-10 货架 9214→5022 事故根因）
+  if (!coll.dirty) {
+    return;
+  }
   try {
     fs.mkdirSync(config.DATA_DIR, { recursive: true });
     const tmp = fileOf(name) + '.tmp';
     fs.writeFileSync(tmp, JSON.stringify(coll.data));
     fs.renameSync(tmp, fileOf(name));
+    coll.dirty = false;
   } catch (e) {
     console.error('[store] flush ' + name + ' failed:', e.message);
   }
@@ -33,6 +40,7 @@ function flush(name, coll) {
 function save(name) {
   const coll = _collections.get(name);
   if (!coll) return;
+  coll.dirty = true;
   clearTimeout(_timers.get(name));
   _timers.set(name, setTimeout(() => { _timers.delete(name); flush(name, coll); }, 300));
 }
@@ -48,7 +56,13 @@ function collection(name, fallback) {
   return coll;
 }
 
+// 跨进程竞态防护：多进程（网关/leapbest-api/各 cron）各持内存快照，
+// 任何 upsert 写回前先重读磁盘最新数据，避免旧快照把别的进程刚写入的项冲掉。
+function reload(name) {
+  return load(name, null);
+}
+
 process.on('SIGINT', () => { flushAll(); process.exit(0); });
 process.on('SIGTERM', () => { flushAll(); process.exit(0); });
 
-module.exports = { collection, save, flushAll };
+module.exports = { collection, save, reload, flushAll };
