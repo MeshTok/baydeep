@@ -7,7 +7,7 @@
 
 **Endpoint**: `https://mcp.baydeep.com/mcp` (Streamable HTTP) · REST: `https://api.baydeep.com/v1`
 
-9 tools: `shelf_search` · `shelf_item` · `buy_link` · `flight_search` · `mint_free_key` (zero-signup API key) · `whoami` · `usage` · `topup_mock` · `list_categories`. 9,000+ live products (AliExpress affiliate) + flight fares (Travelpayouts). Consumers shop at [leapbest.com](https://leapbest.com).
+11 tools: `catalog_overview` (what we sell) · `shelf_search` · `shelf_item` · `flight_search` · `search_products` · `hot_products` · `product_detail` · `convert_link` · `affiliate_orders` · `categories` · `mint_free_key` (zero-signup API key). 5,000+ live products (AliExpress affiliate) + flight fares (Travelpayouts/Aviasales, 40 routes). Consumers shop at [leapbest.com](https://leapbest.com).
 
 ```json
 {
