@@ -252,7 +252,7 @@ function headerTopHTML(q) {
 <form action="/search.html" role="search"><input name="q" placeholder="Search ${list.length.toLocaleString()}+ deals…" value="${esc(q || '')}" aria-label="Search"><button>Search</button></form>
 <div class="top-links"><a href="https://baydeep.com" style="color:#5a6a86">For AI agents ↗</a></div></div></header>`;
 }
-const footerHTML = `<footer><p><b>LeapBest</b> — leap to the best price · Part of the Deep family · <a href="https://baydeep.com" style="color:#445">BayDeep</a></p>
+const footerHTML = `<footer><p><b>LeapBest</b> — leap to the best price · Part of the Deep family · <a href="https://baydeep.com" style="color:#445">BayDeep</a> · <a href="/faq.html" style="color:#445">FAQ</a></p>
 <p style="margin-top:5px">Affiliate disclosure: LeapBest earns commissions from qualifying purchases (AliExpress) and flight bookings (Travelpayouts/Aviasales). Deals & fares refresh daily.</p>
 <p style="margin-top:5px">© 2026 LeapBest</p></footer>`;
 
@@ -390,9 +390,13 @@ function buildCategoryPages() {
     fs.writeFileSync(path.join(OUT, slug, 'index.html'), '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
       '<title>' + esc(m.name) + ' — ' + items.length + ' deals | LeapBest</title>' +
       '<meta name="description" content="Browse ' + items.length + ' ' + esc(m.name) + ' deals — fresh picks daily, ships to 200+ countries.">' +
-      FAVICON + '<link rel="canonical" href="https://leapbest.com/c/' + slug + '.html"><style>' + CSS + '</style></head><body>' + body + '</html>');
-    pages++;
-  }
+      FAVICON + '<link rel="canonical" href="https://leapbest.com/' + slug + '/"><style>' + CSS + '</style></head><body>' + body + '</html>');
+        fs.writeFileSync(path.join(OUT, 'c', slug + '.html'), '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">' +
+          '<link rel="canonical" href="https://leapbest.com/' + slug + '/"><meta http-equiv="refresh" content="0;url=/' + slug + '/">' +
+          '<title>' + esc(m.name) + ' deals moved to /' + slug + '/ | LeapBest</title></head>' +
+          '<body>This category moved to <a href="/' + slug + '/">/' + slug + '/</a>.</body></html>');
+        pages++;
+      }
   for (const [key, s] of Object.entries(bySub)) {
     if (s.items.length < 5) continue;
     s.items.sort((a, b) => (b.sales || 0) - (a.sales || 0));
@@ -583,6 +587,36 @@ fetch('/api/hot').then(r=>r.json()).then(d=>{const t=d.top||[];if(t.length)docum
 
 /* AI 买手对话页（tuifan AI 助手同款思路）：意图识别（flight/goods）→ 调 /api/search → 结果卡流式呈现。
  * 体验是对话，实际是结构化查询——零 LLM 依赖，后续可无缝替换为真 LLM（工具仍是 baydeep 网关）。 */
+function faqHTML() {
+  const qa = [
+    ['What is LeapBest?', 'LeapBest is a deal-finding storefront: we track thousands of AliExpress products and daily flight fares, organize them into browsable categories, and link you straight to the cheapest current offer.'],
+    ['Are the prices real?', 'Yes. Every listed price is captured from the seller or fare provider at our last daily refresh. When you click through, you finish on the partner site (AliExpress, Aviasales, Trip.com and other booking partners), where the live price is confirmed at checkout.'],
+    ['Who ships the products?', 'The merchants on AliExpress handle payment, shipping and returns — LeapBest is the discovery layer. You check out on the merchant site with their buyer protection.'],
+    ['How do flights and hotels work?', 'Flight rows and hotel cards link to booking partners (Aviasales network, Trip.com). You compare fares here, then book directly on the partner site — same ticket, same price, we just help you find it.'],
+    ['What is the AI Shopper?', 'A conversational search: type "air fryer under $50" or "PEK to SIN flights" and it digs the catalog for you, returning ranked picks with attributed links. It is powered by the BayDeep commerce gateway.'],
+    ['How often are deals updated?', 'The deals grid rotates daily and flight fares refresh every day, rolling the date window forward so you always see bookable dates.'],
+    ['How does LeapBest make money?', 'We earn a commission from qualifying purchases and bookings made through our links (affiliate disclosure in the footer). Prices you pay are the same as going direct — the commission comes out of the partner\'s margin, not your pocket.'],
+  ];
+  const jsonld = JSON.stringify({ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: qa.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) });
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FAQ — how LeapBest works, prices, shipping &amp; bookings | LeapBest</title>
+<meta name="description" content="LeapBest FAQ: where our prices come from, who ships and handles returns, how flight and hotel booking works, what the AI Shopper does, and how we earn commissions.">
+<script type="application/ld+json">${jsonld}</script>
+${FAVICON}<link rel="canonical" href="https://leapbest.com/faq.html"><style>${CSS}
+.faqwrap{max-width:780px;margin:0 auto}
+.fitem{background:#fff;border:1px solid #e8ebf2;border-radius:10px;padding:14px 18px;margin-bottom:10px}
+.fitem h3{font-size:15px;margin-bottom:6px;color:#182234}
+.fitem p{font-size:13.5px;color:#4a5876;line-height:1.6}
+.faqcta{margin:18px 0;font-size:13.5px;color:#5a6a86}
+.faqcta a{color:#ff5a1f;font-weight:700;text-decoration:none}
+</style></head><body>${headerTopHTML('')}${channelsHTML('/faq.html')}<main>
+<div class="faqwrap">
+<h2 class="sec">Frequently asked questions <small>how LeapBest finds your best price</small></h2>
+${qa.map(([q, a]) => '<div class="fitem"><h3>' + q + '</h3><p>' + a + '</p></div>').join('\n')}
+<div class="faqcta">Can't find your answer? Ask the <a href="/ai.html">AI Shopper</a> — or browse <a href="/deals/1.html">today's deals</a>.</div>
+</div></main>${footerHTML}</body></html>`;
+}
+
 function aiHTML() {
   return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AI Shopper — ask, compare, leap | LeapBest</title>
@@ -673,6 +707,32 @@ function main() {
   fs.writeFileSync(path.join(OUT, 'hotels.html'), hotelsHTML());
   buildCategoryPages();
   fs.writeFileSync(path.join(OUT, 'ai.html'), aiHTML());
+  fs.writeFileSync(path.join(OUT, 'faq.html'), faqHTML());
+
+  // sitemap.xml：全量 PDP + 分类 + 频道
+  const urls = ['/', '/flights.html', '/hotels.html', '/ai.html', '/faq.html'];
+  for (let i = 1; i <= Math.min(PAGES_N, 10); i++) urls.push('/deals/' + i + '.html');
+  (function collectCats() {
+    const walk = (dir, base) => {
+      for (const f of fs.readdirSync(dir, { withFileTypes: true })) {
+        if (f.isDirectory()) walk(path.join(dir, f.name), base + '/' + f.name);
+        else if (f.name === 'index.html') urls.push(base + '/');
+      }
+    };
+    for (const e of fs.readdirSync(OUT, { withFileTypes: true })) {
+      if (!e.isDirectory() || ['p', 'deals', 'c', 'assets'].includes(e.name)) continue;
+      walk(path.join(OUT, e.name), '/' + e.name);
+    }
+  })();
+  for (const it of list) urls.push('/p/' + it.goods_id + '.html');
+  const sm = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+    urls.map(u => '<url><loc>https://leapbest.com' + u + '</loc><changefreq>daily</changefreq></url>').join('\n') + '\n</urlset>';
+  fs.writeFileSync(path.join(OUT, 'sitemap.xml'), sm);
+  // llms.txt：给 AI 爬虫的站点导览
+  const subsCount = urls.filter(u => /\/.+\/.+\/$/.test(u)).length;
+  const llms = ['# LeapBest', '', 'Deal-finding storefront by BayDeep: ' + goods.length.toLocaleString() + ' AliExpress products, ' + flights.length + ' live flight fares, hotels via Trip.com. Daily refresh.', '', '## Channels', '- Home: https://leapbest.com/', '- All deals: https://leapbest.com/deals/1.html', '- Flights: https://leapbest.com/flights.html', '- Hotels: https://leapbest.com/hotels.html', '- AI Shopper: https://leapbest.com/ai.html', '- FAQ: https://leapbest.com/faq.html', '', '## Category browsing (directory URLs)', '- Electronics: https://leapbest.com/electronics/', '- Home & Living: https://leapbest.com/home-living/', '- Fashion & Bags: https://leapbest.com/fashion-bags/', '- Sports & Outdoors: https://leapbest.com/sports-outdoors/', '- Toys & Hobbies: https://leapbest.com/toys-hobbies/', '- Beauty & Health: https://leapbest.com/beauty-health/', '- Auto & Moto: https://leapbest.com/auto-moto/', '- Pet Supplies: https://leapbest.com/pet-supplies/', '- Tools & DIY: https://leapbest.com/tools-diy/', '- Office & School: https://leapbest.com/office-school/', '', '- Sitemap: https://leapbest.com/sitemap.xml (' + urls.length + ' URLs incl. ' + subsCount + ' subcategory pages)', '- Developer gateway (same catalog as API/MCP): https://baydeep.com'].join('\n');
+  fs.writeFileSync(path.join(OUT, 'llms.txt'), llms);
+
   console.log(`[build] DONE pdp=${n} deal-pages=${PAGES_N} flights=${flights.length} seed=${SEED} goods=${goods.length} → ${path.relative(ROOT, OUT)}`);
 }
 main();
