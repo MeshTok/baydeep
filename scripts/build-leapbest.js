@@ -56,6 +56,7 @@ const starsHTML = (rating, size) => {
   for (let i = 1; i <= 5; i++) out += '<svg width="' + sz + '" height="' + sz + '" viewBox="0 0 24 24" fill="' + (i <= filled ? '#f5a623' : '#d9dfea') + '"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.27l-6.18 3.24L7 14.14 2 9.27l6.91-1.01z"/></svg>';
   return '<span class="stars">' + out + '</span>';
 };
+const slugify = (s) => String(s || '').toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 const MAJOR_CATS = [
   { slug: 'electronics', name: 'Electronics', icon: 'electronics', kws: ['phone', 'mobile', 'audio', 'video', 'electronic', 'consumer', 'computer', 'cable', 'charger', 'camera', 'watch', 'headphone', 'earbud', 'bluetooth', 'speaker', 'tab'] },
   { slug: 'home-living', name: 'Home & Living', icon: 'home', kws: ['home', 'decor', 'textile', 'kitchen', 'dining', 'bar', 'storage', 'organization', 'holder', 'stand', 'furniture', 'bedding', 'light', 'garden', 'bathroom', ' curtain'] },
@@ -224,8 +225,8 @@ footer{max-width:1280px;margin:26px auto 0;padding:18px 20px;color:#8a94a8;font-
 const FAVICON = `<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b1b33'/%3E%3Cpath d='M16 44h32M22 40l12-16 8 10' fill='none' stroke='%23ff5a1f' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">`;
 
 function channelsHTML(active) {
-  const tabs = [['/', 'Home'], ['/deals/1.html', 'All Deals'], ['/flights.html', 'Flights'], ['/ai.html', 'AI Shopper']];
-  return `<nav class="channels">${tabs.map(([u, t]) => `<a href="${u}"${u === active ? ' class="on"' : ''}>${t}</a>`).join('')}<span class="soon">Hotels · eSIM · Activities — coming soon</span></nav>`;
+  const tabs = [['/', 'Home'], ['/deals/1.html', 'All Deals'], ['/flights.html', 'Flights'], ['/hotels.html', 'Hotels'], ['/ai.html', 'AI Shopper']];
+  return `<nav class="channels">${tabs.map(([u, t]) => `<a href="${u}"${u === active ? ' class="on"' : ''}>${t}</a>`).join('')}<span class="soon">eSIM · Activities — coming soon</span></nav>`;
 }
 function headerTopHTML(q) {
   return `<header><a class="logo" href="/">Leap<span>Best</span></a>
@@ -259,7 +260,7 @@ function fminiHTML(f) {
 function catbarHTML() {
   const counts = {};
   for (const it of goods) { const m = catMajor[it.category_name || 'Other']; counts[m] = (counts[m] || 0) + 1; }
-  return `<div class="catbar">${MAJOR_CATS.map(m => `<a href="/search.html?q=${encodeURIComponent(m.name)}"><span class="ic">${SVG(m.icon, 22)}</span>${m.name}<span style="color:#9aa4b8;font-weight:400">${counts[m.slug] || 0}</span></a>`).join('')}</div>`;
+  return `<div class="catbar">${MAJOR_CATS.map(m => `<a href="/c/${m.slug}.html"><span class="ic">${SVG(m.icon, 22)}</span>${m.name}<span style="color:#9aa4b8;font-weight:400">${counts[m.slug] || 0}</span></a>`).join('')}</div>`;
 }
 
 function pagerHTML(cur) {
@@ -293,8 +294,8 @@ function pdpHTML(it) {
   };
   if (it.rating) jsonld.aggregateRating = { '@type': 'AggregateRating', ratingValue: rating5, bestRating: '5', ratingCount: it.sales || 10 };
   const crumb = '<div class="crumb"><a href="/">Home</a><span class="sep">›</span>' +
-    '<a href="/search.html?q=' + encodeURIComponent(major.name) + '">' + major.name + '</a><span class="sep">›</span>' +
-    '<a href="/search.html?q=' + encodeURIComponent(it.category_name || '') + '">' + esc(it.category_name || 'Deals') + '</a><span class="sep">›</span>' +
+    '<a href="/c/' + major.slug + '.html">' + major.name + '</a><span class="sep">›</span>' +
+    '<a href="/c/' + major.slug + '-' + slugify(it.category_name || '') + '.html">' + esc(it.category_name || 'Deals') + '</a><span class="sep">›</span>' +
     '<span>' + esc(it.title).slice(0, 46) + '…</span></div>';
   const bullets = [
     '<li><b>Category:</b> ' + esc(it.category_name || 'Deals') + ' — part of our ' + esc(major.name) + ' selection</li>',
@@ -327,6 +328,67 @@ function pdpHTML(it) {
     '</div></div>' +
     rsum + rel +
     '</main>' + footerHTML + '</body></html>';
+}
+/* ── 分类专属页：/c/<major>.html 与 /c/<major>/<sub>.html（海外站标准分类落地页）── */
+function catPageHTML(title, crumbTrail, items, moreLink) {
+  const slice = items.slice(0, 100);
+  const head = headerTopHTML('') + channelsHTML('/deals/1.html');
+  return '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+    '<title>' + esc(title) + ' — LeapBest</title>' +
+    '<meta name="description" content="Browse ' + slice.length + '+ ' + esc(title) + ' deals on LeapBest — fresh picks daily, ships to 200+ countries.">' +
+    FAVICON + '<link rel="canonical" href="https://leapbest.com/c/' + crumbTrail.join('/').replace(/[^/a-z0-9-]/gi, '') + '.html"><style>' + CSS + '</style></head><body>' +
+    head + '<main>' +
+    '<div class="crumb"><a href="/">Home</a>' + crumbTrail.slice(0, -1).map((c, i) => '<span class="sep">›</span><a href="/c/' + crumbTrail.slice(0, i + 1).join('/') + '.html">' + esc(c) + '</a>').join('') + '<span class="sep">›</span><span>' + esc(crumbTrail[crumbTrail.length - 1]) + '</span></div>' +
+    '<h2 class="sec">' + esc(title) + ' <small>' + items.length + ' items · updated ' + SEED + '</small></h2>' +
+    '<div class="grid">' + slice.map(cardHTML).join('') + '</div>' +
+    '<div class="pager"><a href="' + moreLink + '">Browse all ' + PAGES_N + ' deal pages ›</a></div>' +
+    '</main>' + footerHTML + '</body></html>';
+}
+
+function buildCategoryPages() {
+  const byMajor = {}, bySub = {};
+  for (const it of goods) {
+    const m = catMajor[it.category_name || 'Other'];
+    (byMajor[m] = byMajor[m] || []).push(it);
+    const sub = it.category_name || 'Other';
+    if (m !== 'all') (bySub[m + '/' + slugify(sub)] = bySub[m + '/' + slugify(sub)] || { name: sub, major: m, items: [] }).items.push(it);
+  }
+  const majorByName = {}; MAJOR_CATS.forEach(m => majorByName[m.slug] = m);
+  fs.mkdirSync(path.join(OUT, 'c'), { recursive: true });
+  let pages = 0;
+  for (const [slug, items] of Object.entries(byMajor)) {
+    const m = majorByName[slug] || { name: slug, icon: 'all' };
+    items.sort((a, b) => (b.sales || 0) - (a.sales || 0));
+    const subs = Object.values(bySub).filter(s => s.major === slug && s.items.length >= 5).sort((a, b) => b.items.length - a.items.length);
+    const subChips = subs.length ? '<div class="chips" style="margin-top:14px">' + subs.map(s => '<a href="/c/' + slug + '/' + slugify(s.name) + '.html">' + esc(s.name) + ' <b style="color:#9aa">' + s.items.length + '</b></a>').join('') + '</div>' : '';
+    const body = headerTopHTML('') + channelsHTML('/c/' + slug + '.html').replace('All Deals', 'All Deals') + '<main>' +
+      '<div class="crumb"><a href="/">Home</a><span class="sep">›</span><span>' + esc(m.name) + '</span></div>' +
+      '<h2 class="sec">' + SVG(m.icon, 22) + ' ' + esc(m.name) + ' <small>' + items.length + ' items</small></h2>' + subChips +
+      '<div class="grid" style="margin-top:16px">' + items.slice(0, 100).map(cardHTML).join('') + '</div>' +
+      '<div class="pager"><a href="/deals/1.html">Browse all ' + PAGES_N + ' deal pages ›</a></div>' +
+      '</main>' + footerHTML;
+    fs.writeFileSync(path.join(OUT, 'c', slug + '.html'), '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+      '<title>' + esc(m.name) + ' — ' + items.length + ' deals | LeapBest</title>' +
+      '<meta name="description" content="Browse ' + items.length + ' ' + esc(m.name) + ' deals — fresh picks daily, ships to 200+ countries.">' +
+      FAVICON + '<link rel="canonical" href="https://leapbest.com/c/' + slug + '.html"><style>' + CSS + '</style></head><body>' + body + '</html>');
+    pages++;
+  }
+  for (const [key, s] of Object.entries(bySub)) {
+    if (s.items.length < 5) continue;
+    s.items.sort((a, b) => (b.sales || 0) - (a.sales || 0));
+    const body = headerTopHTML('') + channelsHTML('/c/' + s.major + '.html') + '<main>' +
+      '<div class="crumb"><a href="/">Home</a><span class="sep">›</span><a href="/c/' + s.major + '.html">' + esc(majorByName[s.major] ? majorByName[s.major].name : s.major) + '</a><span class="sep">›</span><span>' + esc(s.name) + '</span></div>' +
+      '<h2 class="sec">' + esc(s.name) + ' <small>' + s.items.length + ' items</small></h2>' +
+      '<div class="grid" style="margin-top:16px">' + s.items.slice(0, 100).map(cardHTML).join('') + '</div>' +
+      '<div class="pager"><a href="/c/' + s.major + '.html">‹ All in this category</a></div>' +
+      '</main>' + footerHTML;
+    fs.writeFileSync(path.join(OUT, 'c', s.major + '-' + slugify(s.name) + '.html'), '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+      '<title>' + esc(s.name) + ' — ' + s.items.length + ' deals | LeapBest</title>' +
+      '<meta name="description" content="Browse ' + s.items.length + ' ' + esc(s.name) + ' deals — fresh picks daily, ships to 200+ countries.">' +
+      FAVICON + '<link rel="canonical" href="https://leapbest.com/c/' + s.major + '-' + slugify(s.name) + '.html"><style>' + CSS + '</style></head><body>' + body + '</html>');
+    pages++;
+  }
+  console.log('[build] category pages:', pages);
 }
 function dealsPageHTML(page) {
   const slice = dailyStream.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -364,6 +426,15 @@ function indexHTML() {
 <div class="fbgo-wrap" style="margin-top:10px"><a class="fbgo" href="/flights.html">Compare flights ›</a></div></div>
 <div class="fbtop">${topFares.map(f => '<a class="fbmini" href="/go/' + esc(f.goods_id) + '" rel="nofollow sponsored"><div class="rt">' + cityName(f.origin_airport) + ' → ' + cityName(f.destination_airport) + '</div><div class="pr">' + money(f.price, f.currency) + '</div></a>').join('')}</div>
 </div>`;
+  const hotelsBanner = `
+<div class="fban" style="background:#0d2117;border-color:#1d4433">
+<div class="fbt"><h3>Hotels</h3><p>18 cities · via Trip.com partners · best-rate guarantee</p>
+<div style="margin-top:10px"><a class="fbgo" style="background:#34d399" href="/hotels.html">Browse hotels ›</a></div></div>
+<div class="fbtop">
+<a class="fbmini" style="background:#0b1220" href="https://www.trip.com/hotels/list?city=656303&language=en-US&curr=USD&AllianceID=11310834&SID=335758864&trip_sub1=leapbest" rel="nofollow sponsored" target="_blank"><div class="rt" style="color:#fff">Bangkok</div><div class="pr" style="color:#34d399">from $14</div></a>
+<a class="fbmini" style="background:#0b1220" href="https://www.trip.com/hotels/list?city=1&language=en-US&curr=USD&AllianceID=11310834&SID=335758864&trip_sub1=leapbest" rel="nofollow sponsored" target="_blank"><div class="rt" style="color:#fff">Singapore</div><div class="pr" style="color:#34d399">partner rates</div></a>
+<a class="fbmini" style="background:#0b1220" href="https://www.trip.com/hotels/list?city=636&language=en-US&curr=USD&AllianceID=11310834&SID=335758864&trip_sub1=leapbest" rel="nofollow sponsored" target="_blank"><div class="rt" style="color:#fff">Hong Kong</div><div class="pr" style="color:#34d399">partner rates</div></a>
+</div></div>`;
   // AI Shopper banner（整宽横幅，示例问题点击直达对话）
   const aiBanner = `
 <div class="aiban">
@@ -383,12 +454,31 @@ ${catbarHTML()}
 <div class="grid">${todays.map(cardHTML).join('')}</div>
 <div class="pager"><a href="/deals/1.html">Browse all ${PAGES_N} pages ›</a></div>
 ${flightBanner}
+${hotelsBanner}
 ${aiBanner}
 <h2 class="sec">Best sellers</h2><div class="grid">${bestSellers.map(cardHTML).join('')}</div>
-<div class="soonrow"><span>Hotels — soon</span><span>eSIM data — soon</span><span>Activities — soon</span><span>Temu &amp; Shein — soon</span></div>
+<div class="soonrow"><span>eSIM data — soon</span><span>Activities — soon</span><span>Temu &amp; Shein — soon</span></div>
 </main>${footerHTML}</body></html>`;
 }
 
+function hotelsHTML() {
+  const A = 'AllianceID=11310834&SID=335758864&trip_sub1=leapbest';
+  const D = [['656303','Bangkok'],['1','Singapore'],['649','Tokyo'],['528','Seoul'],['636','Hong Kong'],['651','Taipei'],['204','Paris'],['242','London'],['702','New York'],['662','Los Angeles'],['328','Dubai'],['858','Sydney'],['665','Kuala Lumpur'],['825','Bali'],['773','Istanbul'],['1381','Macau'],['656305','Phuket'],['286','Rome']];
+  const card = (c) => '<a class="fmini" style="min-width:250px" href="https://www.trip.com/hotels/list?city=' + c[0] + '&language=en-US&curr=USD&' + A + '" rel="nofollow sponsored" target="_blank">' +
+    '<div class="rt">' + c[1] + '</div>' +
+    '<div class="mt">Hotels · compare &amp; book · pay on Trip.com</div>' +
+    '<div class="bt"><span class="pr" style="font-size:12.5px;color:#1a7f37">partner rates</span><span class="bk">Browse ›</span></div></a>';
+  const head = headerTopHTML('') + channelsHTML('/hotels.html');
+  return '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+    '<title>Hotels — book stays in 18 cities via Trip.com | LeapBest</title>' +
+    '<meta name="description" content="Compare and book hotels in Bangkok, Singapore, Tokyo, Paris, NYC and more via our Trip.com partnership — partner rates.">' +
+    FAVICON + '<link rel="canonical" href="https://leapbest.com/hotels.html"><style>' + CSS + '</style></head><body>' +
+    head + '<main>' +
+    '<h2 class="sec">Hotels <small>18 cities · via Trip.com partners · best-rate guarantee</small></h2>' +
+    '<p style="color:#556;margin-bottom:16px">Browse stays in each city — you\'ll land on Trip.com\'s hotel list with our partner rate applied. LeapBest may earn a commission on bookings.</p>' +
+    '<div class="fscroll" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px">' + D.map(card).join('') + '</div>' +
+    '</main>' + footerHTML + '</body></html>';
+}
 function flightsHTML() {
   const origins = [...new Set(flights.map(f => f.origin_airport))].filter(Boolean).sort();
   const dests = [...new Set(flights.map(f => f.destination_airport))].filter(Boolean).sort();
@@ -535,6 +625,7 @@ if(qp)ask(qp);
 function main() {
   fs.mkdirSync(path.join(OUT, 'p'), { recursive: true });
   fs.mkdirSync(path.join(OUT, 'deals'), { recursive: true });
+  fs.mkdirSync(path.join(OUT, 'c'), { recursive: true });
   let n = 0;
   for (const it of list) {
     it._related = goods.filter(x => catMajor[x.category_name || 'Other'] === catMajor[it.category_name || 'Other'] && x.goods_id !== it.goods_id).slice(0, 8);
@@ -546,6 +637,8 @@ function main() {
   fs.writeFileSync(path.join(OUT, 'index.html'), indexHTML());
   fs.writeFileSync(path.join(OUT, 'flights.html'), flightsHTML());
   fs.writeFileSync(path.join(OUT, 'search.html'), searchHTML());
+  fs.writeFileSync(path.join(OUT, 'hotels.html'), hotelsHTML());
+  buildCategoryPages();
   fs.writeFileSync(path.join(OUT, 'ai.html'), aiHTML());
   console.log(`[build] DONE pdp=${n} deal-pages=${PAGES_N} flights=${flights.length} seed=${SEED} goods=${goods.length} → ${path.relative(ROOT, OUT)}`);
 }
