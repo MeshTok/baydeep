@@ -94,19 +94,19 @@ const CSS = `
 *{margin:0;padding:0;box-sizing:border-box}
 body{font:15px/1.55 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#182234;background:#f5f6fa}
 a{color:inherit;text-decoration:none}
-header{background:#fff;border-bottom:1px solid #e8ebf2;padding:12px 24px;display:flex;align-items:center;gap:22px;position:sticky;top:0;z-index:30}
+header{background:#fff;border-bottom:1px solid #e8ebf2;padding:12px 24px;display:flex;align-items:center;justify-content:center;gap:22px;position:sticky;top:0;z-index:30}
 header .logo{font-weight:800;font-size:21px;letter-spacing:-.4px;color:#0b1b33}
 header .logo span{color:#ff5a1f}
-header form{flex:1;display:flex;max-width:560px}
+header form{flex:0 1 560px;display:flex;width:100%;max-width:560px}
 header input{flex:1;border:1.5px solid #d9dfea;border-radius:8px 0 0 8px;padding:9px 14px;font-size:14.5px;outline:none;border-right:0}
 header input:focus{border-color:#ff5a1f}
 header button{border:0;background:#ff5a1f;color:#fff;font-weight:700;padding:9px 20px;border-radius:0 8px 8px 0;cursor:pointer}
-header .top-links{display:flex;gap:18px;font-size:13.5px;color:#5a6a86}
-nav.channels{background:#0b1b33;display:flex;align-items:center;gap:2px;padding:0 20px;overflow-x:auto}
+header .top-links{display:flex;font-size:13.5px;color:#5a6a86}
+nav.channels{background:#0b1b33;display:flex;align-items:center;justify-content:center;gap:2px;padding:0 20px;overflow-x:auto}
 nav.channels a{color:#c6d2e6;padding:10px 16px;font-size:13.5px;font-weight:600;border-bottom:3px solid transparent;white-space:nowrap}
 nav.channels a:hover{color:#fff}
 nav.channels a.on{color:#fff;border-bottom-color:#ff5a1f}
-nav.channels .soon{margin-left:auto;color:#5f6f8e;font-size:12px;padding:10px 6px;white-space:nowrap}
+
 main{max-width:1280px;margin:0 auto;padding:20px}
 /* Category navbar (icon tiles, one row) */
 .catbar{display:grid;grid-template-columns:repeat(10,1fr);gap:8px;margin:6px 0 20px}
@@ -181,9 +181,8 @@ h2.sec .more{margin-left:auto;font-size:13px;color:#ff5a1f;font-weight:600}
 .pager .cur{background:#ff5a1f;border-color:#ff5a1f;color:#fff;font-weight:700}
 .pager .gap{border:0;background:none}
 .pnote{text-align:center;color:#8a94a8;font-size:12px;margin-bottom:8px}
-/* Coming-soon badges */
-.soonrow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:26px 0 4px}
-.soonrow span{background:#eef1f7;border-radius:999px;padding:5px 14px;font-size:12px;color:#5a6a86}
+
+
 .pill{display:inline-block;background:#eef1f7;border-radius:999px;padding:3px 10px;font-size:12px;color:#556;margin:0 6px 6px 0}
 .pdp{display:grid;grid-template-columns:minmax(280px,440px) 1fr;gap:32px;background:#fff;border:1px solid #e8ebf2;border-radius:12px;padding:26px}
 .pdp img{width:100%;border-radius:10px;background:#f0f2f8}
@@ -226,7 +225,7 @@ const FAVICON = `<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://
 
 function channelsHTML(active) {
   const tabs = [['/', 'Home'], ['/deals/1.html', 'All Deals'], ['/flights.html', 'Flights'], ['/hotels.html', 'Hotels'], ['/ai.html', 'AI Shopper']];
-  return `<nav class="channels">${tabs.map(([u, t]) => `<a href="${u}"${u === active ? ' class="on"' : ''}>${t}</a>`).join('')}<span class="soon">eSIM · Activities — coming soon</span></nav>`;
+  return `<nav class="channels">${tabs.map(([u, t]) => `<a href="${u}"${u === active ? ' class="on"' : ''}>${t}</a>`).join('')}</nav>`;
 }
 function headerTopHTML(q) {
   return `<header><a class="logo" href="/">Leap<span>Best</span></a>
@@ -459,7 +458,7 @@ ${flightBanner}
 ${hotelsBanner}
 ${aiBanner}
 <h2 class="sec">Best sellers</h2><div class="grid">${bestSellers.map(cardHTML).join('')}</div>
-<div class="soonrow"><span>eSIM data — soon</span><span>Activities — soon</span><span>Temu &amp; Shein — soon</span></div>
+
 </main>${footerHTML}</body></html>`;
 }
 
