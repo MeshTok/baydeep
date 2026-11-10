@@ -119,7 +119,24 @@ h2.sec .more{margin-left:auto;font-size:13px;color:#ff5a1f;font-weight:600}
 .card .d{display:inline-block;background:#fff1e8;color:#d1440f;font-size:11px;font-weight:700;border-radius:5px;padding:1px 6px;width:fit-content}
 .card .r{font-size:11.5px;color:#77839a}
 /* Flight deals horizontal strip (light) */
-.fscroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x mandatory}
+.fban{background:#fff;border:1px solid #e8ebf2;border-radius:12px;padding:20px 22px;display:flex;align-items:center;gap:26px;margin-bottom:22px}
+.fban .fbt{flex:1;min-width:220px}
+.fban .fbt h3{font-size:19px;letter-spacing:-.2px;margin-bottom:4px}
+.fban .fbt p{font-size:13px;color:#66738c}
+.fban .fbgo{background:#ff5a1f;color:#fff;font-weight:700;font-size:13.5px;border-radius:8px;padding:9px 18px;white-space:nowrap}
+.fban .fbtop{display:flex;gap:10px;flex-wrap:wrap}
+.fban .fbmini{background:#f6f7fb;border-radius:9px;padding:9px 13px;min-width:170px}
+.fban .fbmini .rt{font-size:13px;font-weight:800;color:#0b1b33}
+.fban .fbmini .pr{font-size:15px;font-weight:800;color:#ff5a1f}
+.aiban{background:#0b1b33;color:#fff;border-radius:12px;padding:18px 22px;display:flex;align-items:center;gap:18px;margin-bottom:22px}
+.aiban .aiic{color:#ff5a1f}
+.aiban .ait{flex:1}
+.aiban .ait b{font-size:16px}
+.aiban .ait p{font-size:12.5px;color:#9fb0cc;margin-top:2px}
+.aiban .aiq{background:rgba(255,255,255,.09);border-radius:999px;padding:6px 13px;font-size:12px;color:#dbe6f5;cursor:pointer;white-space:nowrap}
+.aiban .aiq:hover{background:rgba(255,255,255,.18)}
+.aiban .aiqs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.aiban .aigo{background:#ff5a1f;color:#fff;font-size:13px;font-weight:700;border-radius:8px;padding:10px 18px;white-space:nowrap}
 .fmini{min-width:236px;background:#fff;border:1px solid #e8ebf2;border-radius:10px;padding:11px 13px;display:flex;flex-direction:column;gap:3px;scroll-snap-align:start}
 .fmini .rt{font-size:14px;font-weight:800;color:#0b1b33}
 .fmini .rt .arr{color:#ff5a1f}
@@ -281,41 +298,41 @@ ${pagerHTML(page)}
 function indexHTML() {
   const todays = dailyStream.slice(0, 40);
   const bestSellers = [...goods].sort((a, b) => (b.sales || 0) - (a.sales || 0)).slice(0, 20);
-  const topFares = [...flights].sort((a, b) => (a.price ?? 1e15) - (b.price ?? 1e15)).slice(0, 8);
-  const aiCard = `
-<div class="aicard">
-<div class="aihead"><span class="aiic">${SVG('cpu', 26)}</span><div><b>AI Shopper</b><div style="font-size:12px;color:#77839a">compare · check price · decide for you</div></div><a class="aigo" href="/ai.html">Open chat ›</a></div>
-<a class="aiq" href="/ai.html?q=air%20fryer%20deals">What air fryer deals are there?</a>
-<a class="aiq" href="/ai.html?q=flights%20to%20Bangkok">Flights to Bangkok this month?</a>
-<a class="aiq" href="/ai.html?q=iphone%20case%20under%20%243">iPhone case under $3?</a>
+  // 每条航线取最便宜 1 条，再取 3 条不同航线（首页 banner 展示用，不铺卡片）
+  const byRoute = {};
+  for (const f of [...flights].sort((a, b) => (a.price ?? 1e15) - (b.price ?? 1e15))) {
+    const k = f.origin_airport + '>' + f.destination_airport;
+    if (!byRoute[k]) byRoute[k] = f;
+  }
+  const topFares = Object.values(byRoute).slice(0, 3);
+  // Flight deals banner（整宽横幅：文案 + 3 条不同航线 + 入口——海外站 promo banner 式）
+  const flightBanner = `
+<div class="fban">
+<div class="fbt"><h3>Flight deals</h3><p>${flights.length} live fares · ${Object.keys(byRoute).length} routes · via Aviasales partners · refreshed daily</p>
+<div class="fbgo-wrap" style="margin-top:10px"><a class="fbgo" href="/flights.html">Compare flights ›</a></div></div>
+<div class="fbtop">${topFares.map(f => '<a class="fbmini" href="/go/' + esc(f.goods_id) + '" rel="nofollow sponsored"><div class="rt">' + cityName(f.origin_airport) + ' → ' + cityName(f.destination_airport) + '</div><div class="pr">' + money(f.price, f.currency) + '</div></a>').join('')}</div>
+</div>`;
+  // AI Shopper banner（整宽横幅，示例问题点击直达对话）
+  const aiBanner = `
+<div class="aiban">
+<span class="aiic">${SVG('cpu', 30)}</span>
+<div class="ait"><b>AI Shopper</b><p>Ask me to find deals or flights — I'll dig the catalog for you.</p>
+<div class="aiqs"><a class="aiq" href="/ai.html?q=air%20fryer%20deals">air fryer deals</a><a class="aiq" href="/ai.html?q=flights%20to%20Bangkok">flights to Bangkok</a><a class="aiq" href="/ai.html?q=phone%20case%20under%20%243">phone case under $3</a></div></div>
+<a class="aigo" href="/ai.html">Open chat ›</a>
 </div>`;
   return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>LeapBest — Leap to the best price | AliExpress deals up to 90% off</title>
 <meta name="description" content="Live deals across ${list.length.toLocaleString()}+ products from AliExpress plus flight fares — fresh picks daily. Ships to 200+ countries.">
 ${FAVICON}<link rel="canonical" href="https://leapbest.com/">
 <style>${CSS}
-.aicard{background:#0b1b33;color:#fff;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px}
-.aicard .aihead{display:flex;align-items:center;gap:10px}
-.aicard .aiic{font-size:26px}
-.aicard b{font-size:15px}
-.aicard .aigo{margin-left:auto;background:#ff5a1f;color:#fff;font-size:12px;font-weight:700;border-radius:7px;padding:6px 12px;white-space:nowrap}
-.aicard .aiq{background:rgba(255,255,255,.08);border-radius:8px;padding:8px 11px;font-size:12.5px;color:#dbe6f5}
-.aicard .aiq:hover{background:rgba(255,255,255,.16)}
-.split{display:grid;grid-template-columns:1fr 300px;gap:18px;align-items:start}
-@media(max-width:980px){.split{grid-template-columns:1fr}}
 </style></head><body>${headerTopHTML('')}${channelsHTML('/')}<main>
 ${catbarHTML()}
-<h2 class="sec">Flight deals <small>refreshed daily · via Aviasales</small><a class="more" href="/flights.html">All flights ›</a></h2>
-<div class="fscroll">${topFares.map(fminiHTML).join('')}</div>
-<div class="split">
-  <div>
-    <h2 class="sec">Today's deals <small>rotated daily</small><a class="more" href="/deals/2.html">Next page ›</a></h2>
-    <div class="grid">${todays.map(cardHTML).join('')}</div>
-    <div class="pager"><a href="/deals/1.html">Browse all ${PAGES_N} pages ›</a></div>
-    <h2 class="sec">Best sellers</h2><div class="grid">${bestSellers.map(cardHTML).join('')}</div>
-  </div>
-  <aside>${aiCard}</aside>
-</div>
+<h2 class="sec">Today's deals <small>rotated daily</small><a class="more" href="/deals/2.html">Next page ›</a></h2>
+<div class="grid">${todays.map(cardHTML).join('')}</div>
+<div class="pager"><a href="/deals/1.html">Browse all ${PAGES_N} pages ›</a></div>
+${flightBanner}
+${aiBanner}
+<h2 class="sec">Best sellers</h2><div class="grid">${bestSellers.map(cardHTML).join('')}</div>
 <div class="soonrow"><span>Hotels — soon</span><span>eSIM data — soon</span><span>Activities — soon</span><span>Temu &amp; Shein — soon</span></div>
 </main>${footerHTML}</body></html>`;
 }
