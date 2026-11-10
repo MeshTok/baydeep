@@ -24,14 +24,13 @@
 - hot_products: live AliExpress trending (free key)
 - product_detail: detail for up to 10 ids (free key)
 - convert_link: attribute aliexpress URLs to your affiliate account (free key)
-- affiliate_orders: your attributed orders + commission share (free key)
+- affiliate_orders: your attributed orders with purchase tracking (free key)
 - categories: AliExpress category tree (free key)
 - mint_free_key: zero-signup self-serve key (POST /v1/trial)
 
 ## Agent earnings
-- Commission share on commission-eligible purchases driven by your agent
-- Attribution bound to your API key's tracking id via convert_link / flight book_url
-- Free tier: 30 req/min, key never expires
+- Free for agents: 30 req/min, key never expires
+- Commercial partnership inquiries: contact via baydeep.com
 
 ## Consumer storefront
 - LeapBest: https://leapbest.com (deals, flights, hotels — same catalog, human UI)
@@ -40,3 +39,5 @@
 ## Guides
 - How to make money with AI agents: https://baydeep.com/learn/make-money-with-ai-agents.html
 - Give your AI agent shopping capability: https://baydeep.com/learn/give-your-ai-agent-shopping.html
+- Best MCP servers for e-commerce (comparison): https://baydeep.com/learn/best-mcp-servers-ecommerce.html
+- AliExpress product data without API approval: https://baydeep.com/learn/aliexpress-product-data-api.html
