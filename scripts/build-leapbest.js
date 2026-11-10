@@ -49,6 +49,13 @@ const SVG = (name, size = 20) => {
   };
   return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex:none" aria-hidden="true">${P[name] || ''}</svg>`;
 };
+const starsHTML = (rating, size) => {
+  const sz = size || 16;
+  const filled = Math.round((rating || 0) / 20);
+  let out = '';
+  for (let i = 1; i <= 5; i++) out += '<svg width="' + sz + '" height="' + sz + '" viewBox="0 0 24 24" fill="' + (i <= filled ? '#f5a623' : '#d9dfea') + '"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.27l-6.18 3.24L7 14.14 2 9.27l6.91-1.01z"/></svg>';
+  return '<span class="stars">' + out + '</span>';
+};
 const MAJOR_CATS = [
   { slug: 'electronics', name: 'Electronics', icon: 'electronics', kws: ['phone', 'mobile', 'audio', 'video', 'electronic', 'consumer', 'computer', 'cable', 'charger', 'camera', 'watch', 'headphone', 'earbud', 'bluetooth', 'speaker', 'tab'] },
   { slug: 'home-living', name: 'Home & Living', icon: 'home', kws: ['home', 'decor', 'textile', 'kitchen', 'dining', 'bar', 'storage', 'organization', 'holder', 'stand', 'furniture', 'bedding', 'light', 'garden', 'bathroom', ' curtain'] },
@@ -186,6 +193,30 @@ h2.sec .more{margin-left:auto;font-size:13px;color:#ff5a1f;font-weight:600}
 .meta{margin:14px 0;color:#556;font-size:13.5px;display:grid;gap:5px}
 .buybig{display:block;background:#ff5a1f;color:#fff;text-align:center;font-weight:800;font-size:16px;border-radius:10px;padding:13px;margin-top:16px}
 .note{color:#77839a;font-size:12px;margin-top:9px}
+
+.crumb{font-size:12.5px;color:#77839a;margin-bottom:12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.crumb a{color:#5a6a86}
+.crumb a:hover{color:#ff5a1f}
+.crumb .sep{color:#c3cad8}
+.stars{display:inline-flex;align-items:center;gap:1px}
+.stars svg{width:16px;height:16px}
+.pdp{grid-template-columns:minmax(300px,480px) 1fr}
+.pdp .mainimg{border:1px solid #e8ebf2;border-radius:10px;overflow:hidden;background:#fff}
+.brandline{font-size:13px;color:#5a6a86;margin-bottom:8px}
+.brandline a{color:#ff5a1f;font-weight:600}
+h1.pt{font-size:22px;line-height:1.4;letter-spacing:-.2px;margin-bottom:10px;font-weight:700}
+.ratingrow{display:flex;align-items:center;gap:10px;font-size:13px;color:#5a6a86;margin-bottom:14px;flex-wrap:wrap}
+.priceblk{display:flex;align-items:baseline;gap:10px;border-top:1px solid #eef1f6;border-bottom:1px solid #eef1f6;padding:14px 0;margin:12px 0}
+.priceblk .big{font-size:32px;font-weight:800;color:#ff5a1f}
+.priceblk s{color:#98a2b8;font-size:15px}
+.discb{background:#fff1e8;color:#d1440f;font-weight:800;border-radius:6px;padding:3px 9px;font-size:13px}
+.bullets{margin:14px 0;list-style:none;display:grid;gap:8px}
+.bullets li{position:relative;padding-left:22px;font-size:13.5px;color:#33415c}
+.bullets li::before{content:'';position:absolute;left:2px;top:5px;width:7px;height:7px;border-radius:50%;background:#ff5a1f}
+.trustrow{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:#5a6a86;margin-top:12px}
+.rsum{background:#fff;border:1px solid #e8ebf2;border-radius:12px;padding:18px 22px;display:flex;align-items:center;gap:22px;margin:20px 0;flex-wrap:wrap}
+.rsum .big{font-size:40px;font-weight:800;color:#0b1b33}
+.rsum .sub{font-size:12.5px;color:#77839a}
 footer{max-width:1280px;margin:26px auto 0;padding:18px 20px;color:#8a94a8;font-size:12.5px;border-top:1px solid #e8ebf2}
 @media(max-width:900px){.catbar{grid-template-columns:repeat(5,1fr)}.frow{grid-template-columns:1fr auto;gap:8px}.frow .dt,.frow .via{grid-column:1}.pdp{grid-template-columns:1fr;padding:14px}}
 `;
@@ -251,31 +282,52 @@ function pagerHTML(cur) {
 function pdpHTML(it) {
   const cur = it.currency || 'USD';
   const save = it.original_price && it.original_price > it.price ? Math.round((1 - it.price / it.original_price) * 100) : 0;
+  const major = majorOf(it.category_name);
+  const rating5 = it.rating ? (it.rating / 20).toFixed(1) : null;
+  const pageUrl = 'https://leapbest.com/p/' + it.goods_id + '.html';
   const jsonld = {
     '@context': 'https://schema.org', '@type': 'Product',
     name: it.title, image: [it.pict_url], description: it.title,
     brand: { '@type': 'Brand', name: it.shop_name || 'AliExpress' },
-    offers: { '@type': 'Offer', price: it.price, priceCurrency: cur, availability: 'https://schema.org/InStock', url: `https://leapbest.com/p/${it.goods_id}.html` },
+    offers: { '@type': 'Offer', price: it.price, priceCurrency: cur, availability: 'https://schema.org/InStock', url: pageUrl },
   };
-  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${esc(it.title).slice(0, 60)} — ${money(it.price, cur)} | LeapBest</title>
-<meta name="description" content="${esc(it.title).slice(0, 150)}. ${money(it.price, cur)}${save ? ` (${save}% off)` : ''} — ships to 200+ countries via AliExpress.">
-<link rel="canonical" href="https://leapbest.com/p/${esc(it.goods_id)}.html">${FAVICON}
-<script type="application/ld+json">${JSON.stringify(jsonld)}</script><style>${CSS}</style></head><body>
-${headerTopHTML(it.title.slice(0, 36))}${channelsHTML('/deals/1.html')}<main>
-<p style="margin-bottom:12px"><a href="/deals/1.html" style="color:#77839a">‹ All deals</a> <span class="pill">${esc(it.category_name || 'Deals')}</span>${it.shop_name ? `<span class="pill">${esc(it.shop_name)}</span>` : ''}</p>
-<div class="pdp"><div><img src="${esc(it.pict_url)}" alt="${esc(it.title).slice(0, 80)}"></div>
-<div><h1>${esc(it.title)}</h1>
-<div class="price">${money(it.price, cur)}${it.original_price ? `<s>${money(it.original_price, cur)}</s>` : ''}</div>
-${save ? `<span class="save">Save ${save}% today</span>` : ''}
-<div class="meta">${it.rating ? `<span>Rating: ★ ${(it.rating / 20).toFixed(1)} / 5</span>` : ''}${it.sales ? `<span>${it.sales} sold</span>` : ''}<span>Ships to 200+ countries · buyer protection via AliExpress</span></div>
-<a class="buybig" href="/go/${esc(it.goods_id)}" rel="nofollow sponsored">Buy on AliExpress ›</a>
-<p class="note">You'll checkout on AliExpress (secure). LeapBest may earn a commission.</p>
-</div></div>
-<h2 class="sec">More in ${esc(it.category_name || 'this category')}</h2><div class="grid">${(it._related || []).map(cardHTML).join('')}</div>
-</main>${footerHTML}</body></html>`;
+  if (it.rating) jsonld.aggregateRating = { '@type': 'AggregateRating', ratingValue: rating5, bestRating: '5', ratingCount: it.sales || 10 };
+  const crumb = '<div class="crumb"><a href="/">Home</a><span class="sep">›</span>' +
+    '<a href="/search.html?q=' + encodeURIComponent(major.name) + '">' + major.name + '</a><span class="sep">›</span>' +
+    '<a href="/search.html?q=' + encodeURIComponent(it.category_name || '') + '">' + esc(it.category_name || 'Deals') + '</a><span class="sep">›</span>' +
+    '<span>' + esc(it.title).slice(0, 46) + '…</span></div>';
+  const bullets = [
+    '<li><b>Category:</b> ' + esc(it.category_name || 'Deals') + ' — part of our ' + esc(major.name) + ' selection</li>',
+    it.sales ? '<li><b>Popularity:</b> ' + esc(String(it.sales)) + ' sold on AliExpress</li>' : '',
+    it.rating ? '<li><b>Rating:</b> ' + rating5 + ' / 5 from AliExpress buyers</li>' : '',
+    '<li><b>Shipping:</b> ships to 200+ countries worldwide</li>',
+    '<li><b>Buyer protection:</b> full AliExpress guarantee — secure checkout, tracked delivery, easy returns</li>',
+  ].filter(Boolean).join('');
+  const rsum = it.rating ? '<div class="rsum"><div class="big">' + rating5 + '</div><div>' + starsHTML(it.rating, 20) + '<div class="sub">product rating · ' + esc(String(it.sales || 0)) + ' sold</div></div><div class="sub">Ratings are collected by AliExpress from verified buyers.<br>See all reviews on the AliExpress product page.</div></div>' : '';
+  const head = headerTopHTML(it.title.slice(0, 36)) + channelsHTML('/deals/1.html');
+  const rel = '<h2 class="sec">More in ' + esc(it.category_name || 'this category') + '</h2><div class="grid">' + (it._related || []).map(cardHTML).join('') + '</div>';
+  return '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+    '<title>' + esc(it.title).slice(0, 60) + ' — ' + money(it.price, cur) + ' | LeapBest</title>' +
+    '<meta name="description" content="' + esc(it.title).slice(0, 150) + '. ' + money(it.price, cur) + (save ? ' (' + save + '% off)' : '') + ' — ships to 200+ countries via AliExpress.">' +
+    '<link rel="canonical" href="' + pageUrl + '">' + FAVICON +
+    '<script type="application/ld+json">' + JSON.stringify(jsonld) + '</scr' + 'ipt><style>' + CSS + '</style></head><body>' +
+    head + '<main>' +
+    crumb +
+    '<div class="pdp"><div class="mainimg"><img src="' + esc(it.pict_url) + '" alt="' + esc(it.title).slice(0, 80) + '"></div>' +
+    '<div>' +
+    '<div class="brandline">Sold by <a href="/search.html?q=' + encodeURIComponent(it.shop_name || '') + '">' + esc(it.shop_name || 'AliExpress seller') + '</a> · in <a href="/search.html?q=' + encodeURIComponent(it.category_name || '') + '">' + esc(it.category_name || 'Deals') + '</a></div>' +
+    '<h1 class="pt">' + esc(it.title) + '</h1>' +
+    '<div class="ratingrow">' + (it.rating ? starsHTML(it.rating) + ' <b>' + rating5 + '</b> / 5' : '') + (it.sales ? ' · ' + esc(String(it.sales)) + ' sold' : '') + '</div>' +
+    '<div class="priceblk"><span class="big">' + money(it.price, cur) + '</span>' + (it.original_price ? '<s>' + money(it.original_price, cur) + '</s>' : '') + (save ? '<span class="discb">-' + save + '%</span>' : '') + '</div>' +
+    '<span class="save">Save ' + (save || 0) + '% today · limited stock</span>' +
+    '<ul class="bullets">' + bullets + '</ul>' +
+    '<a class="buybig" href="/go/' + esc(it.goods_id) + '" rel="nofollow sponsored">Buy on AliExpress ›</a>' +
+    '<div class="trustrow"><span>🔒 Secure checkout</span><span>🚚 Tracked delivery</span><span>↩ Easy returns</span></div>' +
+    '<p class="note">You\'ll checkout on AliExpress (secure). LeapBest may earn a commission.</p>' +
+    '</div></div>' +
+    rsum + rel +
+    '</main>' + footerHTML + '</body></html>';
 }
-
 function dealsPageHTML(page) {
   const slice = dailyStream.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const url = `https://leapbest.com/deals/${page}.html`;
