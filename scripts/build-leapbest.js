@@ -94,7 +94,8 @@ const CSS = `
 *{margin:0;padding:0;box-sizing:border-box}
 body{font:15px/1.55 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#182234;background:#f5f6fa}
 a{color:inherit;text-decoration:none}
-header{background:#fff;border-bottom:1px solid #e8ebf2;padding:12px 24px;display:flex;align-items:center;justify-content:center;gap:22px;position:sticky;top:0;z-index:30}
+header{background:#fff;border-bottom:1px solid #e8ebf2;padding:12px 0;position:sticky;top:0;z-index:30}
+.hbar{max-width:1280px;margin:0 auto;padding:0 20px;display:flex;align-items:center;gap:22px}
 header .logo{font-weight:800;font-size:21px;letter-spacing:-.4px;color:#0b1b33}
 header .logo span{color:#ff5a1f}
 header form{flex:0 1 560px;display:flex;width:100%;max-width:560px}
@@ -102,7 +103,8 @@ header input{flex:1;border:1.5px solid #d9dfea;border-radius:8px 0 0 8px;padding
 header input:focus{border-color:#ff5a1f}
 header button{border:0;background:#ff5a1f;color:#fff;font-weight:700;padding:9px 20px;border-radius:0 8px 8px 0;cursor:pointer}
 header .top-links{display:flex;font-size:13.5px;color:#5a6a86}
-nav.channels{background:#0b1b33;display:flex;align-items:center;justify-content:center;gap:2px;padding:0 20px;overflow-x:auto}
+nav.channels{background:#0b1b33}
+.cbar{max-width:1280px;margin:0 auto;padding:0 20px;display:flex;align-items:center;gap:2px;overflow-x:auto}
 nav.channels a{color:#c6d2e6;padding:10px 16px;font-size:13.5px;font-weight:600;border-bottom:3px solid transparent;white-space:nowrap}
 nav.channels a:hover{color:#fff}
 nav.channels a.on{color:#fff;border-bottom-color:#ff5a1f}
@@ -243,12 +245,12 @@ const FAVICON = `<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://
 
 function channelsHTML(active) {
   const tabs = [['/', 'Home'], ['/deals/1.html', 'All Deals'], ['/flights.html', 'Flights'], ['/hotels.html', 'Hotels'], ['/ai.html', 'AI Shopper']];
-  return `<nav class="channels">${tabs.map(([u, t]) => `<a href="${u}"${u === active ? ' class="on"' : ''}>${t}</a>`).join('')}</nav>`;
+  return `<nav class="channels"><div class="cbar">${tabs.map(([u, t]) => `<a href="${u}"${u === active ? ' class="on"' : ''}>${t}</a>`).join('')}</div></nav>`;
 }
 function headerTopHTML(q) {
-  return `<header><a class="logo" href="/">Leap<span>Best</span></a>
+  return `<header><div class="hbar"><a class="logo" href="/">Leap<span>Best</span></a>
 <form action="/search.html" role="search"><input name="q" placeholder="Search ${list.length.toLocaleString()}+ deals…" value="${esc(q || '')}" aria-label="Search"><button>Search</button></form>
-<div class="top-links"><a href="https://baydeep.com" style="color:#5a6a86">For AI agents ↗</a></div></header>`;
+<div class="top-links"><a href="https://baydeep.com" style="color:#5a6a86">For AI agents ↗</a></div></div></header>`;
 }
 const footerHTML = `<footer><p><b>LeapBest</b> — leap to the best price · Part of the Deep family · <a href="https://baydeep.com" style="color:#445">BayDeep</a></p>
 <p style="margin-top:5px">Affiliate disclosure: LeapBest earns commissions from qualifying purchases (AliExpress) and flight bookings (Travelpayouts/Aviasales). Deals & fares refresh daily.</p>
