@@ -260,7 +260,7 @@ function fminiHTML(f) {
 function catbarHTML() {
   const counts = {};
   for (const it of goods) { const m = catMajor[it.category_name || 'Other']; counts[m] = (counts[m] || 0) + 1; }
-  return `<div class="catbar">${MAJOR_CATS.map(m => `<a href="/c/${m.slug}.html"><span class="ic">${SVG(m.icon, 22)}</span>${m.name}<span style="color:#9aa4b8;font-weight:400">${counts[m.slug] || 0}</span></a>`).join('')}</div>`;
+  return `<div class="catbar">${MAJOR_CATS.map(m => `<a href="/${m.slug}/"><span class="ic">${SVG(m.icon, 22)}</span>${m.name}<span style="color:#9aa4b8;font-weight:400">${counts[m.slug] || 0}</span></a>`).join('')}</div>`;
 }
 
 function pagerHTML(cur) {
@@ -294,8 +294,8 @@ function pdpHTML(it) {
   };
   if (it.rating) jsonld.aggregateRating = { '@type': 'AggregateRating', ratingValue: rating5, bestRating: '5', ratingCount: it.sales || 10 };
   const crumb = '<div class="crumb"><a href="/">Home</a><span class="sep">›</span>' +
-    '<a href="/c/' + major.slug + '.html">' + major.name + '</a><span class="sep">›</span>' +
-    '<a href="/c/' + major.slug + '-' + slugify(it.category_name || '') + '.html">' + esc(it.category_name || 'Deals') + '</a><span class="sep">›</span>' +
+    '<a href="/' + major.slug + '/">' + major.name + '</a><span class="sep">›</span>' +
+    '<a href="/' + major.slug + '/' + slugify(it.category_name || '') + '/">' + esc(it.category_name || 'Deals') + '</a><span class="sep">›</span>' +
     '<span>' + esc(it.title).slice(0, 46) + '…</span></div>';
   const bullets = [
     '<li><b>Category:</b> ' + esc(it.category_name || 'Deals') + ' — part of our ' + esc(major.name) + ' selection</li>',
@@ -330,15 +330,15 @@ function pdpHTML(it) {
     '</main>' + footerHTML + '</body></html>';
 }
 /* ── 分类专属页：/c/<major>.html 与 /c/<major>/<sub>.html（海外站标准分类落地页）── */
-function catPageHTML(title, crumbTrail, items, moreLink) {
+function catPageHTML(title, crumbTrail, items, moreLink, canonicalPath) {
   const slice = items.slice(0, 100);
   const head = headerTopHTML('') + channelsHTML('/deals/1.html');
   return '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
     '<title>' + esc(title) + ' — LeapBest</title>' +
     '<meta name="description" content="Browse ' + slice.length + '+ ' + esc(title) + ' deals on LeapBest — fresh picks daily, ships to 200+ countries.">' +
-    FAVICON + '<link rel="canonical" href="https://leapbest.com/c/' + crumbTrail.join('/').replace(/[^/a-z0-9-]/gi, '') + '.html"><style>' + CSS + '</style></head><body>' +
+    FAVICON + '<link rel="canonical" href="https://leapbest.com/' + canonicalPath + '"><style>' + CSS + '</style></head><body>' +
     head + '<main>' +
-    '<div class="crumb"><a href="/">Home</a>' + crumbTrail.slice(0, -1).map((c, i) => '<span class="sep">›</span><a href="/c/' + crumbTrail.slice(0, i + 1).join('/') + '.html">' + esc(c) + '</a>').join('') + '<span class="sep">›</span><span>' + esc(crumbTrail[crumbTrail.length - 1]) + '</span></div>' +
+    '<div class="crumb"><a href="/">Home</a>' + crumbTrail.slice(0, -1).map((c, i) => '<span class="sep">›</span><a href="/' + slugify(crumbTrail.slice(0, i + 1).join(' ')) + '/">' + esc(c) + '</a>').join('') + '<span class="sep">›</span><span>' + esc(crumbTrail[crumbTrail.length - 1]) + '</span></div>' +
     '<h2 class="sec">' + esc(title) + ' <small>' + items.length + ' items · updated ' + SEED + '</small></h2>' +
     '<div class="grid">' + slice.map(cardHTML).join('') + '</div>' +
     '<div class="pager"><a href="' + moreLink + '">Browse all ' + PAGES_N + ' deal pages ›</a></div>' +
@@ -360,14 +360,15 @@ function buildCategoryPages() {
     const m = majorByName[slug] || { name: slug, icon: 'all' };
     items.sort((a, b) => (b.sales || 0) - (a.sales || 0));
     const subs = Object.values(bySub).filter(s => s.major === slug && s.items.length >= 5).sort((a, b) => b.items.length - a.items.length);
-    const subChips = subs.length ? '<div class="chips" style="margin-top:14px">' + subs.map(s => '<a href="/c/' + slug + '/' + slugify(s.name) + '.html">' + esc(s.name) + ' <b style="color:#9aa">' + s.items.length + '</b></a>').join('') + '</div>' : '';
+    const subChips = subs.length ? '<div class="chips" style="margin-top:14px">' + subs.map(s => '<a href="/' + slug + '/' + slugify(s.name) + '/">' + esc(s.name) + ' <b style="color:#9aa">' + s.items.length + '</b></a>').join('') + '</div>' : '';
     const body = headerTopHTML('') + channelsHTML('/c/' + slug + '.html').replace('All Deals', 'All Deals') + '<main>' +
       '<div class="crumb"><a href="/">Home</a><span class="sep">›</span><span>' + esc(m.name) + '</span></div>' +
       '<h2 class="sec">' + SVG(m.icon, 22) + ' ' + esc(m.name) + ' <small>' + items.length + ' items</small></h2>' + subChips +
       '<div class="grid" style="margin-top:16px">' + items.slice(0, 100).map(cardHTML).join('') + '</div>' +
       '<div class="pager"><a href="/deals/1.html">Browse all ' + PAGES_N + ' deal pages ›</a></div>' +
       '</main>' + footerHTML;
-    fs.writeFileSync(path.join(OUT, 'c', slug + '.html'), '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+    fs.mkdirSync(path.join(OUT, slug), { recursive: true });
+    fs.writeFileSync(path.join(OUT, slug, 'index.html'), '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
       '<title>' + esc(m.name) + ' — ' + items.length + ' deals | LeapBest</title>' +
       '<meta name="description" content="Browse ' + items.length + ' ' + esc(m.name) + ' deals — fresh picks daily, ships to 200+ countries.">' +
       FAVICON + '<link rel="canonical" href="https://leapbest.com/c/' + slug + '.html"><style>' + CSS + '</style></head><body>' + body + '</html>');
@@ -377,15 +378,16 @@ function buildCategoryPages() {
     if (s.items.length < 5) continue;
     s.items.sort((a, b) => (b.sales || 0) - (a.sales || 0));
     const body = headerTopHTML('') + channelsHTML('/c/' + s.major + '.html') + '<main>' +
-      '<div class="crumb"><a href="/">Home</a><span class="sep">›</span><a href="/c/' + s.major + '.html">' + esc(majorByName[s.major] ? majorByName[s.major].name : s.major) + '</a><span class="sep">›</span><span>' + esc(s.name) + '</span></div>' +
+      '<div class="crumb"><a href="/">Home</a><span class="sep">›</span><a href="/' + s.major + '/">' + esc(majorByName[s.major] ? majorByName[s.major].name : s.major) + '</a><span class="sep">›</span><span>' + esc(s.name) + '</span></div>' +
       '<h2 class="sec">' + esc(s.name) + ' <small>' + s.items.length + ' items</small></h2>' +
       '<div class="grid" style="margin-top:16px">' + s.items.slice(0, 100).map(cardHTML).join('') + '</div>' +
-      '<div class="pager"><a href="/c/' + s.major + '.html">‹ All in this category</a></div>' +
+      '<div class="pager"><a href="/' + s.major + '/">‹ All in this category</a></div>' +
       '</main>' + footerHTML;
-    fs.writeFileSync(path.join(OUT, 'c', s.major + '-' + slugify(s.name) + '.html'), '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+    fs.mkdirSync(path.join(OUT, s.major, slugify(s.name)), { recursive: true });
+    fs.writeFileSync(path.join(OUT, s.major, slugify(s.name), 'index.html'), '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
       '<title>' + esc(s.name) + ' — ' + s.items.length + ' deals | LeapBest</title>' +
       '<meta name="description" content="Browse ' + s.items.length + ' ' + esc(s.name) + ' deals — fresh picks daily, ships to 200+ countries.">' +
-      FAVICON + '<link rel="canonical" href="https://leapbest.com/c/' + s.major + '-' + slugify(s.name) + '.html"><style>' + CSS + '</style></head><body>' + body + '</html>');
+      FAVICON + '<link rel="canonical" href="https://leapbest.com/' + s.major + '/' + slugify(s.name) + '/"><style>' + CSS + '</style></head><body>' + body + '</html>');
     pages++;
   }
   console.log('[build] category pages:', pages);
