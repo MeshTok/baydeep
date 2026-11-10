@@ -89,4 +89,4 @@ function errorWrap(fn) {
   return (ctx) => Promise.resolve(fn(ctx)).catch((e) => errorHandler(ctx, e));
 }
 
-module.exports = { agentAuth, keylessGate, ipAllowed, errorWrap, errorHandler, errorPayload, sha256, TIERS };
+module.exports = { ERR, agentAuth, keylessGate, ipAllowed, errorWrap, errorHandler, errorPayload, sha256, TIERS };
