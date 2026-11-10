@@ -14,16 +14,21 @@ function tokenize(q) {
 // "air fryer" 不再召回只含 "air" 的弱相关（coverage<0.6 直接为 0），销量仅做 tie-break
 function scoreItem(item, terms) {
   if (!terms.length) return 0;
-  const title = String(item.title || '').toLowerCase();
-  const cat = String(item.category_name || '').toLowerCase();
-  const shop = String(item.shop_name || '').toLowerCase();
-  let hits = 0;
+  // 词边界匹配：非字母数字统一折叠成空格，避免子串误命中（"air"∩"chair"）
+  const norm = (v) => ' ' + String(v || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ') + ' ';
+  const title = norm(item.title);
+  const cat = norm(item.category_name);
+  const shop = norm(item.shop_name);
+  let hits = 0, titleHits = 0;
   for (const t of terms) {
-    if (title.includes(t)) hits += 1; else if (cat.includes(t) || shop.includes(t)) hits += 0.5;
+    const w = ' ' + t + ' ';
+    if (title.includes(w)) { hits += 1; titleHits += 1; }
+    else if (cat.includes(w) || shop.includes(w)) hits += 0.5;
   }
   if (hits <= 0) return 0;
   const coverage = hits / terms.length;
-  if (coverage < 0.6) return 0;
+  // 标题必须至少全词命中一个词（头名词语义），否则类目/店铺蹭分不放行
+  if (coverage < 0.6 || titleHits < 1) return 0;
   return coverage * 2 + Math.min((item.sales || 0) / 1e6, 0.1);
 }
 
