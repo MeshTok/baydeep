@@ -100,21 +100,22 @@ async function flightPrices(opts = {}) {
     ['DXB', 'BKK'], ['DOH', 'SIN'], ['IST', 'PEK'], ['HKG', 'DPS'],
   ];
   const currency = (opts.currency || 'usd').toLowerCase();
-  // 多日期窗口：5 个出发日期（Date 筛选下拉有多个可选日期），逐日期调用（prices_for_dates 不支持范围语法）
-  const dates = opts.dates || [iso(7), iso(10), iso(14), iso(21), iso(28)];
+  // 连续日期窗口：今天+7 起 12 天逐日抓取（订票站习惯——Date 筛选条连续可选）；
+  // 每天 cron 窗口前滚一天，旧日期报价自然老化
+  const dates = opts.dates || Array.from({ length: opts.days || 12 }, (_, i) => iso(7 + i));
   const oneWay = opts.one_way !== false;
   const out = [];
   const errs = [];
   for (const [origin, destination] of routes) {
     for (const depart of dates) {
       const u = `${BASE}/aviasales/v3/prices_for_dates?origin=${origin}&destination=${destination}` +
-        `&departure_at=${depart}${oneWay ? '&one_way=true' : ''}&currency=${currency}&token=${TOKEN}&limit=5&sorting=price`;
+        `&departure_at=${depart}${oneWay ? '&one_way=true' : ''}&currency=${currency}&token=${TOKEN}&limit=3&sorting=price`;
       try {
         const r = await getJson(u);
         const arr = (r && r.data) || [];
         for (const d of arr) out.push(normFlight(d, { origin, destination, currency, depart_date: depart }));
       } catch (e) { errs.push(`${origin}-${destination}@${depart}: ${e.message.slice(0, 50)}`); }
-      await new Promise(r => setTimeout(r, 250));
+      await new Promise(r => setTimeout(r, 200));
     }
   }
   return { list: out, errs };
