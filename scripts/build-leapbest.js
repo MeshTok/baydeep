@@ -31,23 +31,40 @@ const PAGES_N = Math.min(MAX_PAGES, Math.max(1, Math.ceil(dailyStream.length / P
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const money = (v, cur) => (cur || 'USD') === 'USD' ? '$' + Number(v).toFixed(2) : Number(v).toFixed(2) + ' ' + (cur || '');
 
-/* ── 大类映射（关键词 → 10 大类，未命中进 Everything Else）── */
+/* ── 大类映射（关键词 → 10 大类，未命中进 Everything Else）；图标 = 内联 SVG（禁 emoji）── */
+const SVG = (name, size = 20) => {
+  const P = {
+    electronics: '<rect x="6" y="2" width="12" height="20" rx="2.5"/><line x1="10.5" y1="18.5" x2="13.5" y2="18.5"/>',
+    home: '<path d="M4 10l8-6.5L20 10v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19z"/><path d="M9.5 20.5v-6h5v6"/>',
+    fashion: '<path d="M6.5 3L3.5 6.5l2.3 3.2 1.7-1V21h9.5V8.7l1.7 1 2.3-3.2L17.5 3a3.2 3.2 0 0 1-5.5 0 3.2 3.2 0 0 1-5.5 0z"/>',
+    sports: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/>',
+    toys: '<rect x="2.5" y="7.5" width="19" height="9.5" rx="4.75"/><path d="M7.5 10.5v3.5M5.75 12.25h3.5"/><circle cx="15.8" cy="11.5" r="1"/><circle cx="18" cy="13.7" r="1"/>',
+    beauty: '<path d="M12 3.5s5.8 6.2 5.8 10.3a5.8 5.8 0 0 1-11.6 0C6.2 9.7 12 3.5 12 3.5z"/>',
+    auto: '<path d="M4.5 14.5l1.6-4.2A2 2 0 0 1 8 9h8a2 2 0 0 1 1.9 1.3l1.6 4.2"/><path d="M3.5 14.5h17v3.5h-2.2M5.7 18H3.5v-3.5z"/><circle cx="7.3" cy="18" r="1.7"/><circle cx="16.7" cy="18" r="1.7"/>',
+    pet: '<circle cx="8.2" cy="7.2" r="1.7"/><circle cx="15.8" cy="7.2" r="1.7"/><circle cx="5.2" cy="11" r="1.5"/><circle cx="18.8" cy="11" r="1.5"/><path d="M12 11.5c-2.7 0-4.9 1.9-4.9 4 0 1.4 1.1 2.6 2.6 2.6.8 0 1.5-.3 2.3-.3s1.5.3 2.3.3c1.5 0 2.6-1.2 2.6-2.6 0-2.1-2.2-4-4.9-4z"/>',
+    tools: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+    office: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+    cpu: '<rect x="5" y="5" width="14" height="14" rx="2"/><rect x="9.5" y="9.5" width="5" height="5"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/>',
+    plane: '<path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9 0-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.5-.3.6-.7.5-1.2z"/>',
+  };
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex:none" aria-hidden="true">${P[name] || ''}</svg>`;
+};
 const MAJOR_CATS = [
-  { slug: 'electronics', name: 'Electronics', icon: '📱', kws: ['phone', 'mobile', 'audio', 'video', 'electronic', 'consumer', 'computer', 'cable', 'charger', 'camera', 'watch', 'headphone', 'earbud', 'bluetooth', 'speaker', 'tab'] },
-  { slug: 'home-living', name: 'Home & Living', icon: '🏠', kws: ['home', 'decor', 'textile', 'kitchen', 'dining', 'bar', 'storage', 'organization', 'holder', 'stand', 'furniture', 'bedding', 'light', 'garden', 'bathroom', ' curtain'] },
-  { slug: 'fashion', name: 'Fashion & Bags', icon: '👗', kws: ['costume', 'jewelry', 'bag', 'apparel', 'clothing', 'shoes', 'accessorie', 'wig', 'fashion'] },
-  { slug: 'sports', name: 'Sports & Outdoors', icon: '⚽', kws: ['sport', 'outdoor', 'tennis', 'fitness', 'camping', 'bicycle', 'bike', 'exercise', 'golf', 'fishing'] },
-  { slug: 'toys-hobbies', name: 'Toys & Hobbies', icon: '🎮', kws: ['acg', 'toy', 'hobby', 'game', 'puzzle', 'doll', 'model', 'kids', 'baby', 'child'] },
-  { slug: 'beauty-health', name: 'Beauty & Health', icon: '💄', kws: ['beauty', 'health', 'cosmetic', 'makeup', 'skin', 'hair care', 'personal care'] },
-  { slug: 'auto-moto', name: 'Auto & Moto', icon: '🚗', kws: ['rv parts', 'auto', 'motorcycle', 'car ', 'vehicle'] },
-  { slug: 'pet-supplies', name: 'Pet Supplies', icon: '🐾', kws: ['pet'] },
-  { slug: 'tools-diy', name: 'Tools & DIY', icon: '🔧', kws: ['tool', 'hardware', 'diy', 'measurement', 'industrial', 'packaging', 'printing', 'equipment', 'machine'] },
-  { slug: 'office-school', name: 'Office & School', icon: '✏️', kws: ['office', 'school', 'stationery', 'pen', 'notebook'] },
+  { slug: 'electronics', name: 'Electronics', icon: 'electronics', kws: ['phone', 'mobile', 'audio', 'video', 'electronic', 'consumer', 'computer', 'cable', 'charger', 'camera', 'watch', 'headphone', 'earbud', 'bluetooth', 'speaker', 'tab'] },
+  { slug: 'home-living', name: 'Home & Living', icon: 'home', kws: ['home', 'decor', 'textile', 'kitchen', 'dining', 'bar', 'storage', 'organization', 'holder', 'stand', 'furniture', 'bedding', 'light', 'garden', 'bathroom', ' curtain'] },
+  { slug: 'fashion', name: 'Fashion & Bags', icon: 'fashion', kws: ['costume', 'jewelry', 'bag', 'apparel', 'clothing', 'shoes', 'accessorie', 'wig', 'fashion'] },
+  { slug: 'sports', name: 'Sports & Outdoors', icon: 'sports', kws: ['sport', 'outdoor', 'tennis', 'fitness', 'camping', 'bicycle', 'bike', 'exercise', 'golf', 'fishing'] },
+  { slug: 'toys-hobbies', name: 'Toys & Hobbies', icon: 'toys', kws: ['acg', 'toy', 'hobby', 'game', 'puzzle', 'doll', 'model', 'kids', 'baby', 'child'] },
+  { slug: 'beauty-health', name: 'Beauty & Health', icon: 'beauty', kws: ['beauty', 'health', 'cosmetic', 'makeup', 'skin', 'hair care', 'personal care'] },
+  { slug: 'auto-moto', name: 'Auto & Moto', icon: 'auto', kws: ['rv parts', 'auto', 'motorcycle', 'car ', 'vehicle'] },
+  { slug: 'pet-supplies', name: 'Pet Supplies', icon: 'pet', kws: ['pet'] },
+  { slug: 'tools-diy', name: 'Tools & DIY', icon: 'tools', kws: ['tool', 'hardware', 'diy', 'measurement', 'industrial', 'packaging', 'printing', 'equipment', 'machine'] },
+  { slug: 'office-school', name: 'Office & School', icon: 'office', kws: ['office', 'school', 'stationery', 'pen', 'notebook'] },
 ];
 function majorOf(catName) {
   const c = String(catName || '').toLowerCase();
   for (const m of MAJOR_CATS) if (m.kws.some(k => c.includes(k))) return m;
-  return { slug: 'all', name: 'Everything Else', icon: '🛍' };
+  return { slug: 'all', name: 'Everything Else', icon: 'all' };
 }
 const catMajor = {}; // category_name -> major slug
 for (const it of goods) catMajor[it.category_name || 'Other'] = majorOf(it.category_name).slug;
@@ -159,8 +176,8 @@ footer{max-width:1280px;margin:26px auto 0;padding:18px 20px;color:#8a94a8;font-
 const FAVICON = `<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b1b33'/%3E%3Cpath d='M16 44h32M22 40l12-16 8 10' fill='none' stroke='%23ff5a1f' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">`;
 
 function channelsHTML(active) {
-  const tabs = [['/', 'Home'], ['/deals/1.html', 'All Deals'], ['/flights.html', '✈ Flights'], ['/ai.html', '🤖 AI 买手']];
-  return `<nav class="channels">${tabs.map(([u, t]) => `<a href="${u}"${u === active ? ' class="on"' : ''}>${t}</a>`).join('')}<span class="soon">🔥 Hotels · eSIM · Activities — coming soon</span></nav>`;
+  const tabs = [['/', 'Home'], ['/deals/1.html', 'All Deals'], ['/flights.html', 'Flights'], ['/ai.html', 'AI Shopper']];
+  return `<nav class="channels">${tabs.map(([u, t]) => `<a href="${u}"${u === active ? ' class="on"' : ''}>${t}</a>`).join('')}<span class="soon">Hotels · eSIM · Activities — coming soon</span></nav>`;
 }
 function headerTopHTML(q) {
   return `<header><a class="logo" href="/">Leap<span>Best</span></a>
@@ -194,7 +211,7 @@ function fminiHTML(f) {
 function catbarHTML() {
   const counts = {};
   for (const it of goods) { const m = catMajor[it.category_name || 'Other']; counts[m] = (counts[m] || 0) + 1; }
-  return `<div class="catbar">${MAJOR_CATS.map(m => `<a href="/search.html?q=${encodeURIComponent(m.name)}"><span class="ic">${m.icon}</span>${m.name}<span style="color:#9aa4b8;font-weight:400">${counts[m.slug] || 0}</span></a>`).join('')}</div>`;
+  return `<div class="catbar">${MAJOR_CATS.map(m => `<a href="/search.html?q=${encodeURIComponent(m.name)}"><span class="ic">${SVG(m.icon, 22)}</span>${m.name}<span style="color:#9aa4b8;font-weight:400">${counts[m.slug] || 0}</span></a>`).join('')}</div>`;
 }
 
 function pagerHTML(cur) {
@@ -255,7 +272,7 @@ function dealsPageHTML(page) {
 <link rel="canonical" href="${url}">${prevNext.join('')}${FAVICON}<style>${CSS}</style></head><body>
 ${headerTopHTML('')}${channelsHTML('/deals/1.html')}<main>
 ${catbarHTML()}
-<h2 class="sec">🛍 All deals <small>daily rotation · ${SEED}</small></h2>
+<h2 class="sec">All deals <small>daily rotation · ${SEED}</small></h2>
 <div class="grid">${slice.map(cardHTML).join('')}</div>
 ${pagerHTML(page)}
 </main>${footerHTML}</body></html>`;
@@ -267,7 +284,7 @@ function indexHTML() {
   const topFares = [...flights].sort((a, b) => (a.price ?? 1e15) - (b.price ?? 1e15)).slice(0, 8);
   const aiCard = `
 <div class="aicard">
-<div class="aihead"><span class="aiic">🤖</span><div><b>AI Shopper</b><div style="font-size:12px;color:#77839a">compare · check price · decide for you</div></div><a class="aigo" href="/ai.html">Open chat ›</a></div>
+<div class="aihead"><span class="aiic">${SVG('cpu', 26)}</span><div><b>AI Shopper</b><div style="font-size:12px;color:#77839a">compare · check price · decide for you</div></div><a class="aigo" href="/ai.html">Open chat ›</a></div>
 <a class="aiq" href="/ai.html?q=air%20fryer%20deals">What air fryer deals are there?</a>
 <a class="aiq" href="/ai.html?q=flights%20to%20Bangkok">Flights to Bangkok this month?</a>
 <a class="aiq" href="/ai.html?q=iphone%20case%20under%20%243">iPhone case under $3?</a>
@@ -288,18 +305,18 @@ ${FAVICON}<link rel="canonical" href="https://leapbest.com/">
 @media(max-width:980px){.split{grid-template-columns:1fr}}
 </style></head><body>${headerTopHTML('')}${channelsHTML('/')}<main>
 ${catbarHTML()}
-<h2 class="sec">✈ Flight deals <small>refreshed daily · via Aviasales</small><a class="more" href="/flights.html">All flights ›</a></h2>
+<h2 class="sec">Flight deals <small>refreshed daily · via Aviasales</small><a class="more" href="/flights.html">All flights ›</a></h2>
 <div class="fscroll">${topFares.map(fminiHTML).join('')}</div>
 <div class="split">
   <div>
-    <h2 class="sec">🔥 Today's deals <small>rotated daily</small><a class="more" href="/deals/2.html">Next page ›</a></h2>
+    <h2 class="sec">Today's deals <small>rotated daily</small><a class="more" href="/deals/2.html">Next page ›</a></h2>
     <div class="grid">${todays.map(cardHTML).join('')}</div>
     <div class="pager"><a href="/deals/1.html">Browse all ${PAGES_N} pages ›</a></div>
-    <h2 class="sec">⭐ Best sellers</h2><div class="grid">${bestSellers.map(cardHTML).join('')}</div>
+    <h2 class="sec">Best sellers</h2><div class="grid">${bestSellers.map(cardHTML).join('')}</div>
   </div>
   <aside>${aiCard}</aside>
 </div>
-<div class="soonrow"><span>🛏 Hotels — soon</span><span>📶 eSIM data — soon</span><span>🎟 Activities — soon</span><span>🛒 Temu &amp; Shein — soon</span></div>
+<div class="soonrow"><span>Hotels — soon</span><span>eSIM data — soon</span><span>Activities — soon</span><span>Temu &amp; Shein — soon</span></div>
 </main>${footerHTML}</body></html>`;
 }
 
@@ -313,7 +330,7 @@ function flightsHTML() {
 <meta name="description" content="Live flight fares via Aviasales partners: ${flights.length} fares across ${origins.length} departure cities. Filter by city and date, book in one leap.">
 ${FAVICON}<link rel="canonical" href="https://leapbest.com/flights.html"><style>${CSS}</style></head><body>
 ${headerTopHTML('')}${channelsHTML('/flights.html')}<main>
-<h2 class="sec">✈ Flight deals <small>${flights.length} live fares · refreshed daily</small></h2>
+<h2 class="sec">Flight deals <small>${flights.length} live fares · refreshed daily</small></h2>
 <div class="fbar">
 <div class="fld"><label>From</label><select id="fo">${opt(origins)}</select></div>
 <button class="swap" id="swap" title="Swap">⇄</button>
@@ -368,7 +385,7 @@ if(q){document.getElementById('rh').textContent='Results for "'+E(q)+'"';
 fetch('/api/search?q='+encodeURIComponent(q)).then(r=>r.json()).then(d=>{
   document.getElementById('g').innerHTML=(d.items||[]).map(i=>'<a class="card" href="/p/'+E(i.goods_id)+'.html"><img loading="lazy" src="'+E(i.pict_url)+'"><div class="in"><div class="t">'+E(i.title)+'</div><div class="p">$'+Number(i.price).toFixed(2)+(i.original_price?'<s>$'+Number(i.original_price).toFixed(2)+'</s>':'')+'</div>'+(i.discount?'<span class="d">-'+i.discount+'%</span>':'')+'</div></a>').join('')||'<p style="color:#77839a">No results — try another keyword.</p>';
 }).catch(()=>{document.getElementById('g').innerHTML='<p style="color:#77839a">Search temporarily unavailable.</p>'});}
-fetch('/api/hot').then(r=>r.json()).then(d=>{const t=d.top||[];if(t.length)document.getElementById('trend').innerHTML='<h2 class="sec">🔥 Trending searches</h2><div class="chips">'+t.map(x=>'<a href="/search.html?q='+encodeURIComponent(x.q)+'">'+E(x.q)+' <b style="color:#9aa">'+x.n+'</b></a>').join('')+'</div>';}).catch(()=>{});
+fetch('/api/hot').then(r=>r.json()).then(d=>{const t=d.top||[];if(t.length)document.getElementById('trend').innerHTML='<h2 class="sec">Trending searches</h2><div class="chips">'+t.map(x=>'<a href="/search.html?q='+encodeURIComponent(x.q)+'">'+E(x.q)+' <b style="color:#9aa">'+x.n+'</b></a>').join('')+'</div>';}).catch(()=>{});
 </script></body></html>`;
 }
 
@@ -398,7 +415,7 @@ ${FAVICON}<link rel="canonical" href="https://leapbest.com/ai.html"><style>${CSS
 .qchips button:hover{border-color:#ff5a1f;color:#ff5a1f}
 </style></head><body>${headerTopHTML('')}${channelsHTML('/ai.html')}<main>
 <div class="chatwrap">
-<h2 class="sec">🤖 AI Shopper <small>ask me to find deals or flights — powered by BayDeep gateway</small></h2>
+<h2 class="sec">AI Shopper <small>ask me to find deals or flights — powered by BayDeep gateway</small></h2>
 <div class="chatbox" id="box"><div class="msg bot">Hi! Tell me what you're shopping for — a product ("air fryer under $50") or a trip ("PEK to SIN flights"). I'll dig the catalog for you.</div></div>
 <div class="qchips">
 <button data-q="air fryer deals">air fryer deals</button>
