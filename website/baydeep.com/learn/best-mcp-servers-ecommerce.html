@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Best MCP Servers for E-Commerce in 2026 — Shopping, Product Data &amp; Payments | BayDeep</title>
+<meta name="description" content="The best MCP servers for e-commerce in 2026: product search and attributed buy links (BayDeep), browser automation (Playwright MCP, browser-use), web scraping and payments. Comparison table + how to choose.">
+<link rel="canonical" href="https://baydeep.com/learn/best-mcp-servers-ecommerce.html">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f172a'/%3E%3Cpath d='M18 26h28l-3 22H21z' fill='none' stroke='%2338bdf8' stroke-width='4' stroke-linejoin='round'/%3E%3Cpath d='M25 26v-4a7 7 0 0 1 14 0v4' fill='none' stroke='%2338bdf8' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is the best MCP server for e-commerce?","acceptedAnswer":{"@type":"Answer","text":"For agents that need to search real products and return attributed buy links, BayDeep is the fastest to integrate: a hosted remote MCP server with thousands of products and daily flight fares, free API key, one URL in your MCP config. For visual browser flows (checkout, form filling), pair it with Playwright MCP or browser-use."}},{"@type":"Question","name":"Do MCP e-commerce servers cost money?","acceptedAnswer":{"@type":"Answer","text":"BayDeep has a free tier that works without any API key, plus a free key that never expires for attributed links and order tracking. Playwright MCP and browser-use are open source and free to self-host — they cost compute, not license fees."}},{"@type":"Question","name":"Can an MCP server complete checkout for the user?","acceptedAnswer":{"@type":"Answer","text":"Checkout completion needs browser automation (Playwright MCP, browser-use) plus stored payment credentials, which raises security and compliance questions. Most shopping agents today do discovery and price comparison via a commerce gateway like BayDeep, then hand the attributed link to the user for checkout."}}]}</script>
+<style>
+:root { --bg:#0b1220; --panel:#111a2e; --line:#1e2a44; --ink:#e6edf7; --dim:#8b9bb4; --accent:#38bdf8; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--ink); font:16px/1.7 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+.wrap { max-width:820px; margin:0 auto; padding:0 24px; }
+header { display:flex; align-items:center; justify-content:space-between; padding:22px 0; }
+.brand { display:flex; align-items:center; gap:10px; font-weight:700; font-size:19px; color:var(--ink); text-decoration:none; }
+.brand svg { width:28px; height:28px; }
+nav a { color:var(--dim); text-decoration:none; margin-left:22px; font-size:14px; }
+nav a:hover { color:var(--ink); }
+h1 { font-size:32px; line-height:1.2; letter-spacing:-.3px; margin:14px 0 10px; }
+.sub { color:var(--dim); font-size:17px; margin-bottom:26px; }
+h2 { font-size:21px; margin:32px 0 12px; }
+p, li { margin-bottom:10px; color:#c6d2e6; }
+ul { padding-left:22px; }
+strong { color:var(--ink); }
+.cta { background:var(--panel); border-left:3px solid var(--accent); border-radius:0 9px 9px 0; padding:16px 20px; margin:22px 0; }
+.cta a { color:var(--accent); font-weight:700; text-decoration:none; }
+.faq .item { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px 18px; margin-bottom:10px; }
+.faq .item h3 { font-size:15px; margin-bottom:6px; }
+table { width:100%; border-collapse:collapse; margin:14px 0 20px; font-size:14px; }
+th, td { border:1px solid var(--line); padding:9px 12px; text-align:left; color:#c6d2e6; vertical-align:top; }
+th { color:var(--ink); background:var(--panel); }
+code { font-family:ui-monospace,monospace; background:var(--panel); border:1px solid var(--line); border-radius:5px; padding:1px 7px; font-size:13px; color:var(--accent); }
+footer { padding:26px 0; color:var(--dim); font-size:13px; border-top:1px solid var(--line); margin-top:34px; }
+footer a, a.doc { color:var(--accent); text-decoration:none; }
+.rel { margin:28px 0; }
+.rel a { display:block; color:var(--accent); padding:6px 0; text-decoration:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><a class="brand" href="/"><svg viewBox="0 0 64 64" fill="none"><path d="M18 26h28l-3 22H21z" stroke="#38bdf8" stroke-width="4" stroke-linejoin="round"/><path d="M25 26v-4a7 7 0 0 1 14 0v4" stroke="#38bdf8" stroke-width="4" stroke-linecap="round"/></svg>BayDeep</a>
+<nav><a href="/docs/">Docs</a><a href="/console/">Console</a><a href="https://leapbest.com">Shop ↗</a></nav></header>
+
+<h1>Best MCP Servers for E-Commerce in 2026</h1>
+<p class="sub">Shopping, product data, scraping and payments — the MCP servers that turn any AI agent into a commerce agent, compared.</p>
+
+<p>Model Context Protocol (MCP) has become the standard way to give AI agents tools. For commerce, that means one question: which MCP server lets your agent <strong>find real products, compare prices, and return a link the user can actually buy through</strong>? This guide compares the options that were live and maintained as of November 2026.</p>
+
+<h2>1. BayDeep — product search + attributed buy links</h2>
+<p><strong>Best for:</strong> agents that should shop for their users without running a browser.</p>
+<p>BayDeep is a hosted remote MCP server with thousands of AliExpress products, daily-refreshed flight fares and hotel stays, exposed as tools like <code>shelf_search</code>, <code>product_detail</code> and <code>convert_link</code>. Search works without any key; a free key (minted with one API call, no signup) unlocks attributed buy links and order tracking. One URL in your MCP config, nothing to deploy. Listed in the <a class="doc" href="https://registry.modelcontextprotocol.io/">official MCP Registry</a>.</p>
+<p><code>{"mcpServers": {"baydeep": {"url": "https://mcp.baydeep.com/mcp"}}}</code></p>
+
+<h2>2. Playwright MCP — browser automation</h2>
+<p><strong>Best for:</strong> flows that need a real browser: marketplaces without APIs, logged-in carts, screenshots.</p>
+<p>Microsoft's official Playwright MCP drives a real Chromium instance — clicking, typing, navigating. It is the standard choice when a site has no API and the agent must operate it visually. Free and open source; you host the browser.</p>
+
+<h2>3. browser-use — agentic browsing</h2>
+<p><strong>Best for:</strong> open-ended tasks where the agent figures out the page on its own.</p>
+<p>browser-use is the most-starred browser automation agent and is commonly demoed on shopping flows (compare products, fill carts). It trades determinism for flexibility — great for prototypes and demos, heavier to run in production.</p>
+
+<h2>4. Firecrawl MCP — scraping product pages</h2>
+<p><strong>Best for:</strong> pulling structured data from arbitrary product URLs.</p>
+<p>Firecrawl turns any web page into clean markdown or structured JSON. Useful when you need attributes from a specific product page rather than search across a catalog. Free tier available; hosted or self-hosted.</p>
+
+<h2>Comparison</h2>
+<table>
+<tr><th>Server</th><th>Product search</th><th>Buy links</th><th>Runs own browser</th><th>Hosting</th></tr>
+<tr><td><strong>BayDeep</strong></td><td>Yes — catalog search, filters</td><td>Yes — attributed per key</td><td>No (API tools)</td><td>Hosted, free tier</td></tr>
+<tr><td>Playwright MCP</td><td>Via browsing</td><td>Manual</td><td>Yes</td><td>Self-hosted</td></tr>
+<tr><td>browser-use</td><td>Via browsing</td><td>Manual</td><td>Yes</td><td>Self-hosted</td></tr>
+<tr><td>Firecrawl MCP</td><td>Single-URL scrape</td><td>No</td><td>No</td><td>Hosted / self</td></tr>
+</table>
+
+<h2>How to choose</h2>
+<ul>
+<li>Your agent should <strong>recommend and link products</strong> → commerce gateway (BayDeep) — cheapest path, no browser to run</li>
+<li>Your agent must <strong>operate a specific site</strong> (checkout, login, forms) → Playwright MCP or browser-use</li>
+<li>You need <strong>one specific page's data</strong> → Firecrawl</li>
+<li>Many production agents combine them: BayDeep for discovery, Playwright for the edge cases</li>
+</ul>
+
+<div class="faq">
+<h2>Frequently asked questions</h2>
+<div class="item"><h3>What is the best MCP server for e-commerce?</h3><p>For product search and attributed buy links, BayDeep — hosted, free tier, one URL. For browser flows, pair it with Playwright MCP or browser-use.</p></div>
+<div class="item"><h3>Do MCP e-commerce servers cost money?</h3><p>BayDeep's keyless tier and free key cost nothing. Playwright MCP and browser-use are open source — they cost compute, not license fees.</p></div>
+<div class="item"><h3>Can an MCP server complete checkout?</h3><p>Checkout needs browser automation plus stored payment credentials, which raises security questions. Most agents do discovery via a gateway, then hand the attributed link to the user.</p></div>
+<div class="item"><h3>Where do I register a remote MCP server?</h3><p>The official MCP Registry at registry.modelcontextprotocol.io — BayDeep is listed there under <code>io.github.MeshTok/baydeep</code>.</p></div>
+</div>
+
+<div class="cta"><strong>Try it in 5 minutes:</strong> <a href="/console/">mint a free API key</a> · <a href="/docs/quickstart.html">quickstart</a> · <a href="/docs/">full docs</a></div>
+
+<div class="rel">
+<h2>Related reading</h2>
+<a href="/learn/make-money-with-ai-agents.html">How to make money with AI agents — the affiliate-commerce model</a>
+<a href="/learn/give-your-ai-agent-shopping.html">Give your AI agent shopping capability</a>
+<a href="/learn/aliexpress-product-data-api.html">AliExpress product data without API approval</a>
+<a href="/docs/">BayDeep API documentation</a>
+</div>
+
+<footer>BayDeep — the e-commerce plugin for AI agents · part of the Deep family · <a href="https://github.com/MeshTok/baydeep">source on GitHub</a></footer>
+</div>
+</body>
+</html>
