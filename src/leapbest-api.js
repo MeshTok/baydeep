@@ -93,7 +93,7 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/search') {
       const q = (u.searchParams.get('q') || '').slice(0, MAX_Q).trim();
       if (!q) { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ items: [] })); }
-      const r = shelf.searchShelf(q, { limit: 40 });
+      const r = shelf.searchShelf({ q, page_size: 40 });
       const items = (r && r.items) || r || [];
       logSearch(q, items.length, ip);
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });

@@ -10,19 +10,21 @@ function tokenize(q) {
   return String(q || '').toLowerCase().split(/[^a-z0-9\u4e00-\u9fff]+/).filter((t) => t.length > 0);
 }
 
-// 相关性打分：标题命中为主、类目/店铺名半权重，销量只做已命中的 tie-break
-//（⚠️ tie-break 不能无条件加——销量>0 的项无词命中也会 >0 分，货架搜索将永远过滤不掉任何项）
+// 相关性打分：标题命中为主、类目/店铺名半权重；多词查询按"词覆盖率"过滤——
+// "air fryer" 不再召回只含 "air" 的弱相关（coverage<0.6 直接为 0），销量仅做 tie-break
 function scoreItem(item, terms) {
   if (!terms.length) return 0;
   const title = String(item.title || '').toLowerCase();
   const cat = String(item.category_name || '').toLowerCase();
   const shop = String(item.shop_name || '').toLowerCase();
-  let s = 0;
+  let hits = 0;
   for (const t of terms) {
-    if (title.includes(t)) s += 1; else if (cat.includes(t) || shop.includes(t)) s += 0.5;
+    if (title.includes(t)) hits += 1; else if (cat.includes(t) || shop.includes(t)) hits += 0.5;
   }
-  if (s <= 0) return 0;
-  return s + Math.min((item.sales || 0) / 1e6, 0.1);
+  if (hits <= 0) return 0;
+  const coverage = hits / terms.length;
+  if (coverage < 0.6) return 0;
+  return coverage * 2 + Math.min((item.sales || 0) / 1e6, 0.1);
 }
 
 function searchShelf(opts = {}) {
@@ -92,4 +94,41 @@ function stats() {
   return { total: coll.data.items.length, updated_at: coll.data.updated_at };
 }
 
-module.exports = { searchShelf, getItem, upsertItems, stats };
+// 平台×品类聚合（MCP catalog_overview 用：让 agent 一眼看清"我们有什么产品类型"）
+function overview() {
+  const byPlatform = {}, byCat = {};
+  for (const it of coll.data.items) {
+    const p = it.platform || 'aliexpress';
+    byPlatform[p] = (byPlatform[p] || 0) + 1;
+    const c = it.category_name || 'Other';
+    byCat[c] = (byCat[c] || 0) + 1;
+  }
+  const cats = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
+  return {
+    total: coll.data.items.length,
+    updated_at: coll.data.updated_at,
+    platforms: byPlatform,
+    categories_total: cats.length,
+    top_categories: cats.slice(0, 30).map(([name, count]) => ({ name, count }))
+  };
+}
+
+// 机票专用检索（免 key 面：agent 问"PEK 到 SIN 的机票"直接命中，返回的 book_url 已带 Travelpayouts 归因）
+function searchFlights(opts = {}) {
+  const from = String(opts.origin || '').toUpperCase().trim();
+  const to = String(opts.destination || '').toUpperCase().trim();
+  const date = String(opts.date || '').trim();
+  let list = coll.data.items.filter((x) => x.platform === 'travelpayouts' || (x.category_name || '').toLowerCase() === 'flights');
+  if (from) list = list.filter((x) => String(x.origin_airport || '').toUpperCase() === from);
+  if (to) list = list.filter((x) => String(x.destination_airport || '').toUpperCase() === to);
+  if (date) list = list.filter((x) => String(x.departure_at || '').slice(0, 10) === date);
+  list = list.slice().sort((a, b) => (a.price ?? 1e15) - (b.price ?? 1e15));
+  const pageSize = Math.min(Math.max(parseInt(opts.page_size || '20', 10) || 20, 1), 50);
+  return {
+    total: list.length,
+    routes_available: [...new Set(list.map((x) => `${x.origin_airport}→${x.destination_airport}`))].slice(0, 40),
+    items: list.slice(0, pageSize)
+  };
+}
+
+module.exports = { searchShelf, getItem, upsertItems, stats, overview, searchFlights };
