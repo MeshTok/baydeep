@@ -153,7 +153,25 @@ h2.sec .more{margin-left:auto;font-size:13px;color:#ff5a1f;font-weight:600}
 .fmini .pr{font-size:16px;font-weight:800;color:#ff5a1f}
 .fmini .bk{background:#0b1b33;color:#fff;font-size:11.5px;font-weight:700;border-radius:6px;padding:5px 10px}
 /* Flight filter bar (Skyscanner style) */
-.fbar{background:#fff;border:1px solid #e8ebf2;border-radius:12px;padding:14px;display:flex;gap:10px;align-items:end;flex-wrap:wrap;position:sticky;top:56px;z-index:20;box-shadow:0 2px 10px rgba(16,26,50,.06)}
+.fbar{background:#fff;border:1px solid #e8ebf2;border-radius:12px;padding:16px 18px;position:sticky;top:56px;z-index:20;box-shadow:0 2px 10px rgba(16,26,50,.06);display:flex;flex-direction:column;gap:12px}
+
+.fbar{display:flex;flex-direction:column;gap:12px}
+.fgroup{display:flex;flex-direction:column;gap:7px}
+.fgroup>label{font-size:11px;font-weight:700;color:#5a6a86;text-transform:uppercase;letter-spacing:.4px}
+.pills{display:flex;gap:6px;flex-wrap:wrap}
+.pill{background:#fff;border:1.5px solid #d9dfea;color:#33415c;border-radius:999px;padding:7px 15px;font-size:13px;cursor:pointer;font-weight:600}
+.pill:hover{border-color:#ff5a1f;color:#ff5a1f}
+.pill.on{background:#ff5a1f;border-color:#ff5a1f;color:#fff}
+.dpills{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+.dpill{flex:0 0 auto;background:#fff;border:1.5px solid #d9dfea;color:#33415c;border-radius:10px;padding:7px 13px;cursor:pointer;text-align:center}
+.dpill .dw{display:block;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.dpill .dd{display:block;font-size:15px;font-weight:800;margin-top:1px}
+.dpill:hover{border-color:#ff5a1f}
+.dpill.on{background:#ff5a1f;border-color:#ff5a1f;color:#fff}
+.dpill.on .dw{color:#ffe0d1}
+.fbarrow2{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.fbar .clr{border:0;background:none;color:#ff5a1f;font-weight:700;font-size:13px;cursor:pointer;padding:6px 4px}
+.fbar .cnt{margin-left:auto;font-size:13.5px;color:#5a6a86;font-weight:600}
 .fbar .fld{display:flex;flex-direction:column;gap:4px}
 .fbar label{font-size:11px;font-weight:700;color:#5a6a86;text-transform:uppercase;letter-spacing:.3px}
 .fbar select{border:1.5px solid #d9dfea;border-radius:8px;padding:8px 10px;font-size:14px;min-width:170px;outline:none;background:#fff}
@@ -492,12 +510,10 @@ ${FAVICON}<link rel="canonical" href="https://leapbest.com/flights.html"><style>
 ${headerTopHTML('')}${channelsHTML('/flights.html')}<main>
 <h2 class="sec">Flight deals <small>${flights.length} live fares · refreshed daily</small></h2>
 <div class="fbar">
-<div class="fld"><label>From</label><select id="fo">${opt(origins)}</select></div>
-<button class="swap" id="swap" title="Swap">⇄</button>
-<div class="fld"><label>To</label><select id="ft">${opt(dests)}</select></div>
-<div class="fld"><label>Departure</label><select id="fd">${opt(dates)}</select></div>
-<button class="clr" id="clr">Clear</button>
-<span class="cnt" id="cnt"></span>
+<div class="fgroup"><label>From</label><div class="pills" id="pfrom"></div></div>
+<div class="fgroup"><label>To</label><div class="pills" id="pto"></div></div>
+<div class="fgroup"><label>Departure</label><div class="dpills" id="pdate"></div></div>
+<div class="fbarrow2"><button class="clr" id="clr">Clear filters</button><span class="cnt" id="cnt"></span></div>
 </div>
 <div class="flist" id="flist"></div>
 <div id="fempty" class="fempty" style="display:none">No fares match this route yet — try Clear, or check back tomorrow (fares refresh daily).</div>
@@ -507,28 +523,42 @@ const CITY = ${JSON.stringify(CITY)};
 const $ = id => document.getElementById(id);
 const cn = i => CITY[i] || i;
 const esc = s => String(s == null ? '' : s);
+const WD = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MO = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const nice = iso => { const d = new Date(iso + 'T00:00:00'); return WD[d.getDay()] + ', ' + MO[d.getMonth()] + ' ' + d.getDate(); };
+const state = { o: '', d: '', date: '' };
+function pills(containerId, values, key, label) {
+  const el = $(containerId);
+  el.innerHTML = '<button class="pill' + (state[key] === '' ? ' on' : '') + '" data-v="">' + label + '</button>' +
+    values.map(v => '<button class="pill' + (state[key] === v ? ' on' : '') + '" data-v="' + v + '">' + (key === 'date' ? nice(v) : (cn(v) + ' (' + v + ')')) + '</button>').join('');
+  el.querySelectorAll('.pill').forEach(b => b.onclick = () => { state[key] = b.dataset.v; render(); });
+}
 function render() {
-  const fo = $('fo').value, ft = $('ft').value, fd = $('fd').value;
-  let list = DATA.filter(f => (!fo || f.o === fo) && (!ft || f.d === ft) && (!fd || f.dep.slice(0, 10) === fd));
+  pills('pfrom', [...new Set(DATA.map(f => f.o))].sort(), 'o', 'Any city');
+  pills('pto', [...new Set(DATA.map(f => f.d))].sort(), 'd', 'Any city');
+  pills('pdate', [...new Set(DATA.map(f => f.dep.slice(0, 10)))].sort(), 'date', 'Any date');
+  let list = DATA.filter(f => (!state.o || f.o === state.o) && (!state.d || f.d === state.d) && (!state.date || f.dep.slice(0, 10) === state.date));
   list.sort((a, b) => a.price - b.price);
   $('cnt').textContent = list.length + ' fare' + (list.length === 1 ? '' : 's');
   $('fempty').style.display = list.length ? 'none' : 'block';
   $('flist').innerHTML = list.map(f => {
     const stops = f.stops === 0 ? '<span class="tag">Direct</span>' : (f.stops != null ? '<span class="tag stops">' + f.stops + ' stop' + (f.stops > 1 ? 's' : '') + '</span>' : '');
+    const dt = new Date(f.dep + ':00');
     return '<div class="frow"><div class="rt">' + cn(f.o) + ' → ' + cn(f.d) + '<small>' + f.o + ' → ' + f.d + '</small></div>' +
-      '<div class="dt"><b>' + esc(f.dep) + '</b></div>' +
+      '<div class="dt"><b>' + WD[dt.getDay()] + ', ' + MO[dt.getMonth()] + ' ' + dt.getDate() + '</b> · ' + String(f.dep).slice(11, 16) + '</div>' +
       '<div class="via">' + stops + (f.via ? ' via ' + esc(f.via) : '') + '</div>' +
       '<div><div class="pr">$' + Number(f.price).toFixed(2) + '</div><a class="bk" href="' + f.url + '" rel="nofollow sponsored">Book ›</a></div></div>';
   }).join('');
+  pills('pfrom', [...new Set(DATA.map(f => f.o))].sort(), 'o', 'Any city');
+  pills('pto', [...new Set(DATA.map(f => f.d))].sort(), 'd', 'Any city');
+  pills('pdate', [...new Set(DATA.map(f => f.dep.slice(0, 10)))].sort(), 'date', 'Any date');
 }
-$('fo').onchange = render; $('ft').onchange = render; $('fd').onchange = render;
-$('clr').onclick = () => { $('fo').value = ''; $('ft').value = ''; $('fd').value = ''; render(); };
-$('swap').onclick = () => { const t = $('fo').value; $('fo').value = $('ft').value; $('ft').value = t; render(); };
+$('clr').onclick = () => { state.o = state.d = state.date = ''; render(); };
+function swapRoute() { const tmp = state.o; state.o = state.d; state.d = tmp; render(); }
 const qp = new URLSearchParams(location.search);
-if (qp.get('from')) $('fo').value = qp.get('from');
-if (qp.get('to')) $('ft').value = qp.get('to');
-if (qp.get('date')) $('fd').value = qp.get('date');
+state.o = qp.get('from') || ''; state.d = qp.get('to') || ''; state.date = qp.get('date') || '';
 render();
+</script>
 </script>
 </main>${footerHTML}</body></html>`;
 }
