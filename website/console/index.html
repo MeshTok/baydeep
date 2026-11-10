@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Developer Console — BayDeep</title>
+<meta name="description" content="Get a free BayDeep API key (no signup), check usage and test the catalog — the developer console for the BayDeep agent commerce gateway.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f172a'/%3E%3Cpath d='M18 26h28l-3 22H21z' fill='none' stroke='%2338bdf8' stroke-width='4' stroke-linejoin='round'/%3E%3Cpath d='M25 26v-4a7 7 0 0 1 14 0v4' fill='none' stroke='%2338bdf8' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+:root { --bg:#0b1220; --panel:#111a2e; --line:#1e2a44; --ink:#e6edf7; --dim:#8b9bb4; --accent:#38bdf8; --accent2:#0ea5e9; --ok:#34d399; --err:#f87171; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--ink); font:15px/1.6 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+.wrap { max-width:880px; margin:0 auto; padding:0 24px; }
+header { display:flex; align-items:center; justify-content:space-between; padding:22px 0; }
+.brand { display:flex; align-items:center; gap:10px; font-weight:700; font-size:19px; color:var(--ink); text-decoration:none; }
+.brand svg { width:28px; height:28px; }
+nav a { color:var(--dim); text-decoration:none; margin-left:22px; font-size:14px; }
+nav a:hover { color:var(--ink); }
+h1 { font-size:30px; letter-spacing:-.3px; margin:18px 0 6px; }
+.sub { color:var(--dim); margin-bottom:26px; }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:22px; margin-bottom:18px; }
+.card h2 { font-size:16px; margin-bottom:6px; }
+.card p.hint { color:var(--dim); font-size:13.5px; margin-bottom:14px; }
+.row { display:flex; gap:10px; flex-wrap:wrap; }
+input { background:var(--bg); border:1px solid var(--line); color:var(--ink); border-radius:8px; padding:10px 13px; font-size:14px; outline:none; flex:1; min-width:220px; font-family:ui-monospace,monospace; }
+input:focus { border-color:var(--accent); }
+button { background:linear-gradient(180deg,var(--accent),var(--accent2)); color:#04121f; font-weight:700; border:0; border-radius:8px; padding:10px 20px; cursor:pointer; font-size:14px; }
+button.ghost { background:none; border:1px solid var(--line); color:var(--ink); font-weight:500; }
+button:hover { filter:brightness(1.1); }
+.keybox { font-family:ui-monospace,monospace; background:var(--bg); border:1px dashed var(--accent); border-radius:8px; padding:12px 14px; font-size:14px; word-break:break-all; margin-top:12px; display:none; }
+.keybox.show { display:block; }
+.stat { display:inline-block; background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:8px 14px; margin:6px 8px 0 0; font-size:13px; }
+.stat b { color:var(--accent); }
+pre { background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:12px 14px; font:12.5px/1.6 ui-monospace,monospace; overflow-x:auto; color:#9fd8f7; }
+.out { margin-top:12px; display:none; }
+.out.show { display:block; }
+.out pre { color:var(--ink); max-height:340px; overflow:auto; }
+.err { color:var(--err); }
+.okc { color:var(--ok); }
+label { display:block; font-size:12px; color:var(--dim); margin:10px 0 5px; letter-spacing:.4px; text-transform:uppercase; }
+footer { padding:26px 0; color:var(--dim); font-size:13px; border-top:1px solid var(--line); margin-top:30px; }
+footer a { color:var(--accent); text-decoration:none; }
+a.doc { color:var(--accent); text-decoration:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><a class="brand" href="/"><svg viewBox="0 0 64 64" fill="none"><path d="M18 26h28l-3 22H21z" stroke="#38bdf8" stroke-width="4" stroke-linejoin="round"/><path d="M25 26v-4a7 7 0 0 1 14 0v4" stroke="#38bdf8" stroke-width="4" stroke-linecap="round"/></svg>BayDeep</a>
+<nav><a href="/docs/">Docs</a><a href="/console/" style="color:var(--accent)">Console</a><a href="https://leapbest.com">Shop ↗</a><a href="https://github.com/MeshTok">GitHub ↗</a></nav></header>
+
+<h1>Developer Console</h1>
+<p class="sub">Get a free API key in one click — no signup, never expires. Check usage. Test the catalog live.</p>
+
+<div class="card">
+<h2>1 · Mint a free API key</h2>
+<p class="hint">Zero-signup. Unlocks live AliExpress search, attributed buy links and your 3% commission share. Rate limit 30 req/min.</p>
+<div class="row"><input id="ref" placeholder="optional: your client_ref ([A-Za-z0-9-], ≤40)" style="font-family:inherit"><button onclick="mint()">Mint key</button></div>
+<div class="keybox" id="keybox"></div>
+<p style="font-size:12.5px;color:var(--dim);margin-top:10px">Store this key — it is shown once per mint. Send it as <code style="color:var(--accent)">X-API-Key</code> header (or <code style="color:var(--accent)">Authorization: Bearer</code>) on every call.</p>
+</div>
+
+<div class="card">
+<h2>2 · Check key usage</h2>
+<p class="hint">Plan, rate limit and call counters for your key.</p>
+<div class="row"><input id="keyin" placeholder="bd_… paste your API key"><button class="ghost" onclick="whoami()">Check /v1/me</button></div>
+<div class="out" id="meout"><pre id="meout-pre"></pre></div>
+</div>
+
+<div class="card">
+<h2>3 · Test the catalog (keyless)</h2>
+<p class="hint">Shelf search works without any key — 30 req/min per IP.</p>
+<div class="row"><input id="q" placeholder="air fryer" style="font-family:inherit"><button class="ghost" onclick="testSearch()">GET /v1/shelf?q=</button></div>
+<div class="out" id="qout"><pre id="qout-pre"></pre></div>
+</div>
+
+<div class="card">
+<h2>Connect from any MCP client</h2>
+<p class="hint">Or skip REST entirely — BayDeep is a remote MCP server:</p>
+<pre>{
+  "mcpServers": {
+    "baydeep": { "url": "https://mcp.baydeep.com/mcp" }
+  }
+}</pre>
+<p style="font-size:13px;color:var(--dim);margin-top:10px">Full tool list and code samples in the <a class="doc" href="/docs/">documentation ↗</a>. Registered in the official MCP Registry as <code style="color:var(--accent)">io.github.MeshTok/baydeep</code>.</p>
+</div>
+
+<footer>BayDeep — the e-commerce plugin for AI agents · part of the Deep family · <a href="https://leapbest.com">leapbest.com</a> · <a href="https://github.com/MeshTok/baydeep">source</a></footer>
+</div>
+<script>
+const API = 'https://api.baydeep.com/v1';
+const $ = id => document.getElementById(id);
+const savedKey = localStorage.getItem('bd_key');
+if (savedKey) { $('keyin').value = savedKey; $('keybox').textContent = savedKey; $('keybox').classList.add('show'); }
+async function mint() {
+  const ref = $('ref').value.trim();
+  $('keybox').classList.add('show');
+  $('keybox').innerHTML = 'minting…';
+  try {
+    const r = await fetch(API + '/trial', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(ref ? { client_ref: ref } : {}) });
+    const d = await r.json();
+    const key = d.key || d.api_key || (d.data && d.data.key);
+    if (!key) throw new Error(JSON.stringify(d).slice(0,200));
+    localStorage.setItem('bd_key', key);
+    $('keybox').innerHTML = '<span class="okc">✓</span> ' + key + ' <button class="ghost" style="padding:4px 10px;font-size:12px" onclick="navigator.clipboard.writeText(\'' + key + '\')">copy</button>';
+    $('keyin').value = key;
+  } catch (e) { $('keybox').innerHTML = '<span class="err">mint failed: ' + e.message + '</span>'; }
+}
+async function whoami() {
+  const k = $('keyin').value.trim();
+  const out = $('meout'), pre = $('meout-pre');
+  out.classList.add('show'); pre.textContent = 'checking…';
+  try {
+    const r = await fetch(API + '/me', { headers: { 'X-API-Key': k, 'Authorization': 'Bearer ' + k } });
+    const d = await r.json();
+    pre.textContent = JSON.stringify(d, null, 2);
+  } catch (e) { pre.textContent = 'error: ' + e.message; }
+}
+async function testSearch() {
+  const q = $('q').value.trim() || 'air fryer';
+  const out = $('qout'), pre = $('qout-pre');
+  out.classList.add('show'); pre.textContent = 'searching…';
+  try {
+    const r = await fetch(API + '/shelf?q=' + encodeURIComponent(q) + '&page_size=5');
+    const d = await r.json();
+    const items = (d.items || (d.data && d.data.items) || []);
+    pre.textContent = JSON.stringify({ total: d.total != null ? d.total : items.length, sample: items.map(i => ({ title: i.title && i.title.slice(0,50), price: i.price })) }, null, 2);
+  } catch (e) { pre.textContent = 'error: ' + e.message; }
+}
+</script>
+</body>
+</html>

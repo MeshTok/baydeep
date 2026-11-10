@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Documentation — BayDeep agent commerce gateway</title>
+<meta name="description" content="BayDeep MCP & REST API documentation: 11 tools, authentication, code samples in curl/JS/Python, commission rules. Registered in the official MCP Registry.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f172a'/%3E%3Cpath d='M18 26h28l-3 22H21z' fill='none' stroke='%2338bdf8' stroke-width='4' stroke-linejoin='round'/%3E%3Cpath d='M25 26v-4a7 7 0 0 1 14 0v4' fill='none' stroke='%2338bdf8' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+:root { --bg:#0b1220; --panel:#111a2e; --line:#1e2a44; --ink:#e6edf7; --dim:#8b9bb4; --accent:#38bdf8; --accent2:#0ea5e9; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--ink); font:15px/1.7 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+.wrap { max-width:900px; margin:0 auto; padding:0 24px; }
+header { display:flex; align-items:center; justify-content:space-between; padding:22px 0; }
+.brand { display:flex; align-items:center; gap:10px; font-weight:700; font-size:19px; color:var(--ink); text-decoration:none; }
+.brand svg { width:28px; height:28px; }
+nav a { color:var(--dim); text-decoration:none; margin-left:22px; font-size:14px; }
+nav a:hover { color:var(--ink); }
+h1 { font-size:30px; letter-spacing:-.3px; margin:16px 0 6px; }
+.sub { color:var(--dim); margin-bottom:24px; }
+h2 { font-size:20px; margin:34px 0 12px; padding-top:10px; border-top:1px solid var(--line); }
+h3 { font-size:15.5px; margin:20px 0 8px; color:var(--accent); }
+p, li { font-size:14.5px; color:#c6d2e6; margin-bottom:8px; }
+code { font-family:ui-monospace,monospace; background:var(--panel); border:1px solid var(--line); border-radius:5px; padding:1px 7px; font-size:13px; color:var(--accent); }
+pre { background:var(--panel); border:1px solid var(--line); border-radius:9px; padding:14px 16px; font:13px/1.65 ui-monospace,monospace; overflow-x:auto; margin:10px 0 16px; }
+pre .c { color:#5a6a86; } pre .k { color:#7dd3fc; }
+table { width:100%; border-collapse:collapse; margin:12px 0 18px; font-size:13.5px; }
+th { text-align:left; color:var(--dim); font-weight:600; border-bottom:1px solid var(--line); padding:8px 10px; font-size:12px; text-transform:uppercase; letter-spacing:.4px; }
+td { border-bottom:1px solid var(--line); padding:9px 10px; vertical-align:top; }
+td code { white-space:nowrap; }
+.badge { display:inline-block; border:1px solid var(--line); background:var(--panel); color:var(--ok,#34d399); border-radius:999px; padding:4px 13px; font-size:12.5px; margin-bottom:16px; }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+@media(max-width:760px){.grid2{grid-template-columns:1fr}}
+.callout { background:var(--panel); border-left:3px solid var(--accent); border-radius:0 9px 9px 0; padding:12px 16px; margin:14px 0; font-size:13.5px; }
+footer { padding:26px 0; color:var(--dim); font-size:13px; border-top:1px solid var(--line); margin-top:34px; }
+footer a, a.doc { color:var(--accent); text-decoration:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><a class="brand" href="/"><svg viewBox="0 0 64 64" fill="none"><path d="M18 26h28l-3 22H21z" stroke="#38bdf8" stroke-width="4" stroke-linejoin="round"/><path d="M25 26v-4a7 7 0 0 1 14 0v4" stroke="#38bdf8" stroke-width="4" stroke-linecap="round"/></svg>BayDeep</a>
+<nav><a href="/docs/" style="color:var(--accent)">Docs</a><a href="/console/">Console</a><a href="https://leapbest.com">Shop ↗</a><a href="https://github.com/MeshTok">GitHub ↗</a></nav></header>
+
+<span class="badge">● Live — registered in the official MCP Registry (io.github.MeshTok/baydeep)</span>
+<h1>Documentation</h1>
+<p class="sub">Connect your AI agent to a live commerce catalog: 7,000+ AliExpress products and 188 flight fares, with attributed buy links and a 3% commission share.</p>
+
+<h2>Endpoints</h2>
+<table>
+<tr><th>Interface</th><th>URL</th><th>Auth</th></tr>
+<tr><td><b>MCP (Streamable HTTP)</b></td><td><code>https://mcp.baydeep.com/mcp</code></td><td>keyless tools + key tools</td></tr>
+<tr><td><b>REST</b></td><td><code>https://api.baydeep.com/v1</code></td><td>same, via headers</td></tr>
+<tr><td>Consumer site</td><td><a class="doc" href="https://leapbest.com">leapbest.com</a></td><td>—</td></tr>
+</table>
+
+<h2>Authentication</h2>
+<p>Mint a free key in one click (<a class="doc" href="/console/">console ↗</a>) — no signup, never expires.</p>
+<pre><span class="c"># mint (one call, zero signup)</span>
+curl -X POST https://api.baydeep.com/v1/trial -H "Content-Type: application/json" -d '{"client_ref":"my-agent"}'</pre>
+<p>Send the key on every call:</p>
+<pre><span class="c"># either header works</span>
+X-API-Key: bd_xxxxxxxx
+Authorization: Bearer bd_xxxxxxxx</pre>
+<div class="callout"><b>Keyless tier:</b> <code>catalog_overview</code> · <code>flight_search</code> · <code>shelf_search</code> · <code>shelf_item</code> work WITHOUT a key (30 req/min per IP). Live platform tools require the free key. Rate limit with key: 30 req/min.</div>
+
+<h2>MCP tools (11)</h2>
+<table>
+<tr><th>Tool</th><th>Key</th><th>What it does</th></tr>
+<tr><td><code>catalog_overview</code></td><td>keyless</td><td>Product types, counts, top categories and how-to — call first when unsure what the catalog contains</td></tr>
+<tr><td><code>flight_search</code></td><td>keyless</td><td>Flight fares by origin/destination IATA + date; <code>book_url</code> is pre-attributed</td></tr>
+<tr><td><code>shelf_search</code></td><td>keyless</td><td>Search 7,000+ stocked goods + fares; sort price/sales/latest, price filters</td></tr>
+<tr><td><code>shelf_item</code></td><td>keyless</td><td>One shelf item by goods_id (full normalized fields)</td></tr>
+<tr><td><code>search_products</code></td><td>key</td><td>Live AliExpress search (100M+ pool, target currency)</td></tr>
+<tr><td><code>hot_products</code></td><td>key</td><td>Live AliExpress trending products</td></tr>
+<tr><td><code>product_detail</code></td><td>key</td><td>Detail for up to 10 product ids</td></tr>
+<tr><td><code>convert_link</code></td><td>key</td><td>Convert any aliexpress URL(s) into YOUR attributed affiliate links (max 10)</td></tr>
+<tr><td><code>affiliate_orders</code></td><td>key</td><td>Your attributed orders + 3% share summary (settlement source)</td></tr>
+<tr><td><code>categories</code></td><td>key</td><td>AliExpress category tree</td></tr>
+<tr><td><code>mint_free_key</code></td><td>—</td><td>Self-serve key minting (also available as REST POST /v1/trial)</td></tr>
+</table>
+
+<h2>Quickstart — 3 calls</h2>
+<pre><span class="c"># 1. mint a key</span>
+curl -X POST https://api.baydeep.com/v1/trial -H "Content-Type: application/json" -d '{}'
+
+<span class="c"># 2. search the shelf (also works keyless)</span>
+curl "https://api.baydeep.com/v1/shelf?q=air%20fryer&page_size=5"
+
+<span class="c"># 3. attribute your buy link (key)</span>
+curl -X POST https://api.baydeep.com/v1/convert -H "X-API-Key: bd_xxx" \
+  -H "Content-Type: application/json" -d '{"urls":"https://www.aliexpress.com/item/3256813111870438.html"}'</pre>
+
+<h3>JavaScript (fetch)</h3>
+<pre><span class="k">const</span> r = <span class="k">await</span> fetch(<span class="c">'https://api.baydeep.com/v1/shelf?q=air+fryer'</span>);
+<span class="k">const</span> { items } = <span class="k">await</span> r.json();
+items.forEach(i =&gt; console.log(i.title, i.price, i.detail_url));</pre>
+
+<h3>Python (requests)</h3>
+<pre><span class="k">import</span> requests
+r = requests.get(<span class="c">"https://api.baydeep.com/v1/shelf"</span>, params={<span class="c">"q"</span>: <span class="c">"air fryer"</span>, <span class="c">"page_size"</span>: 5})
+<span class="k">for</span> i <span class="k">in</span> r.json()[<span class="c">"items"</span>]: print(i[<span class="c">"title"</span>], i[<span class="c">"price"</span>])</pre>
+
+<h2>MCP client config</h2>
+<pre>{
+  <span class="k">"mcpServers"</span>: {
+    <span class="k">"baydeep"</span>: { <span class="k">"url"</span>: <span class="c">"https://mcp.baydeep.com/mcp"</span> }
+  }
+}</pre>
+
+<h2>Commission &amp; rules</h2>
+<p><b>Agent share:</b> 3% of purchase volume, counting only orders whose product commission rate is above 3%. Attribution is bound to your key's tracking id — always run buy links through <code>convert_link</code>. Flight <code>book_url</code>s are pre-attributed.</p>
+<p><b>Keyless limits:</b> 30 req/min per IP, shelf tools only. <b>Free key:</b> 30 req/min, all tools.</p>
+
+<h2>Registry &amp; source</h2>
+<p>Registered in the official MCP Registry: <code>io.github.MeshTok/baydeep</code> · Source: <a class="doc" href="https://github.com/MeshTok/baydeep">github.com/MeshTok/baydeep</a> · Consumer storefront: <a class="doc" href="https://leapbest.com">leapbest.com</a></p>
+
+<footer>BayDeep — the e-commerce plugin for AI agents · part of the Deep family · <a href="https://github.com/MeshTok">github.com/MeshTok</a></footer>
+</div>
+</body>
+</html>
