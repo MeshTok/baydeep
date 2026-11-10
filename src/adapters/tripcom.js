@@ -32,6 +32,10 @@ function _httpsJson(url, timeoutMs = 20000) {
   });
 }
 
+function isoPlus(days) {
+  return new Date(Date.now() + days * 86400e3).toISOString().slice(0, 10);
+}
+
 function attrUrl(base) {
   const joiner = base.includes('?') ? '&' : '?';
   return `${base}${joiner}AllianceID=${ALLIANCE_ID}&SID=${SID}&trip_sub1=leapbest`;
@@ -42,7 +46,7 @@ async function hotelDestinations(opts = {}) {
   if (!ALLIANCE_ID || !SID) return { list: [], errs: ['TRIPCOM_ALLIANCE_ID/SID not configured yet'] };
   const out = [];
   for (const [cityId, name] of DESTS) {
-    const base = `https://www.trip.com/hotels/list?city=${cityId}&checkin=&checkout=&crn=1&adult=2&language=en-US&curr=USD`;
+    const base = `https://www.trip.com/hotels/list?city=${cityId}&checkin=${isoPlus(7)}&checkout=${isoPlus(8)}&crn=1&adult=2&language=en-US&curr=USD`;
     out.push({
       platform: 'tripcom',
       category: 'hotel',
