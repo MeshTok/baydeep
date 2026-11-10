@@ -1,0 +1,42 @@
+# BayDeep — The e-commerce plugin for AI agents
+
+> BayDeep is a commerce gateway for AI agents: one MCP server or REST API gives any agent product search, price comparison, flight deals, attributed buy links and order tracking. Registered in the official MCP Registry (io.github.MeshTok/baydeep). Consumer storefront: leapbest.com
+
+## Endpoints
+- MCP (Streamable HTTP): https://mcp.baydeep.com/mcp
+- REST API: https://api.baydeep.com/v1
+- Developer console (free API key, no signup): https://baydeep.com/console/
+- Documentation: https://baydeep.com/docs/
+- Quickstart (5 minutes): https://baydeep.com/docs/quickstart.html
+- Source: https://github.com/MeshTok/baydeep
+
+## Product types
+- Physical goods: 7,000+ AliExpress affiliate products, ships to 200+ countries
+- Flight fares: 190 live fares across 40 routes (Aviasales/Travelpayouts partners)
+- Hotel stays: 18 destination cities (Trip.com partners, up to 7% off retail)
+
+## Tools (11)
+- catalog_overview: catalog contents and usage guide (keyless)
+- shelf_search: search stocked products and fares (keyless)
+- shelf_item: item detail by goods_id (keyless)
+- flight_search: flight fares by IATA origin/destination/date (keyless)
+- search_products: live AliExpress search (free key)
+- hot_products: live AliExpress trending (free key)
+- product_detail: detail for up to 10 ids (free key)
+- convert_link: attribute aliexpress URLs to your affiliate account (free key)
+- affiliate_orders: your attributed orders + commission share (free key)
+- categories: AliExpress category tree (free key)
+- mint_free_key: zero-signup self-serve key (POST /v1/trial)
+
+## Agent earnings
+- Commission share on commission-eligible purchases driven by your agent
+- Attribution bound to your API key's tracking id via convert_link / flight book_url
+- Free tier: 30 req/min, key never expires
+
+## Consumer storefront
+- LeapBest: https://leapbest.com (deals, flights, hotels — same catalog, human UI)
+- Category browsing: https://leapbest.com/electronics/ , https://leapbest.com/home-living/ , https://leapbest.com/hotels/
+
+## Guides
+- How to make money with AI agents: https://baydeep.com/learn/make-money-with-ai-agents.html
+- Give your AI agent shopping capability: https://baydeep.com/learn/give-your-ai-agent-shopping.html

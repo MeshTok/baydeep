@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Give Your AI Agent Shopping Capability — MCP Guide | BayDeep</title>
+<meta name="description" content="How to give any AI agent shopping capability via MCP or REST: product search, price comparison, attributed buy links and order tracking — free API key, 5-minute setup.">
+<link rel="canonical" href="https://baydeep.com/learn/give-your-ai-agent-shopping.html">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f172a'/%3E%3Cpath d='M18 26h28l-3 22H21z' fill='none' stroke='%2338bdf8' stroke-width='4' stroke-linejoin='round'/%3E%3Cpath d='M25 26v-4a7 7 0 0 1 14 0v4' fill='none' stroke='%2338bdf8' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How do I give my AI agent shopping capability?","acceptedAnswer":{"@type":"Answer","text":"Connect it to a commerce gateway that exposes shopping as tools. With BayDeep, add one URL (https://mcp.baydeep.com/mcp) to your MCP client config — your agent instantly gets 11 tools: product search, price comparison, flight search, attributed buy links and order tracking. Free API key, no signup."}},{"@type":"Question","name":"Which AI platforms support shopping tools?","acceptedAnswer":{"@type":"Answer","text":"Any MCP client (Claude, Cursor, custom agents) connects via one URL. For platforms without MCP, BayDeep also exposes the same catalog as REST endpoints (api.baydeep.com/v1) usable from any language."}}]}</script>
+<style>
+:root { --bg:#0b1220; --panel:#111a2e; --line:#1e2a44; --ink:#e6edf7; --dim:#8b9bb4; --accent:#38bdf8; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--ink); font:16px/1.7 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+.wrap { max-width:820px; margin:0 auto; padding:0 24px; }
+header { display:flex; align-items:center; justify-content:space-between; padding:22px 0; }
+.brand { display:flex; align-items:center; gap:10px; font-weight:700; font-size:19px; color:var(--ink); text-decoration:none; }
+.brand svg { width:28px; height:28px; }
+nav a { color:var(--dim); text-decoration:none; margin-left:22px; font-size:14px; }
+nav a:hover { color:var(--ink); }
+h1 { font-size:32px; line-height:1.2; letter-spacing:-.3px; margin:14px 0 10px; }
+.sub { color:var(--dim); font-size:17px; margin-bottom:26px; }
+h2 { font-size:21px; margin:32px 0 12px; }
+p, li { margin-bottom:10px; color:#c6d2e6; }
+ul { padding-left:22px; }
+strong { color:var(--ink); }
+code { font-family:ui-monospace,monospace; background:var(--panel); border:1px solid var(--line); border-radius:5px; padding:1px 7px; font-size:13px; color:var(--accent); }
+pre { background:var(--panel); border:1px solid var(--line); border-radius:9px; padding:14px 16px; font:13px/1.65 ui-monospace,monospace; overflow-x:auto; margin:10px 0 16px; }
+.k { color:#7dd3fc; } .c { color:#5a6a86; }
+.cta { background:var(--panel); border-left:3px solid var(--accent); border-radius:0 9px 9px 0; padding:16px 20px; margin:22px 0; }
+.cta a { color:var(--accent); font-weight:700; text-decoration:none; }
+footer { padding:26px 0; color:var(--dim); font-size:13px; border-top:1px solid var(--line); margin-top:34px; }
+footer a, a.doc { color:var(--accent); text-decoration:none; }
+.rel { margin:28px 0; }
+.rel a { display:block; color:var(--accent); padding:6px 0; text-decoration:none; }
+.rel h2 { border:0; padding:0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><a class="brand" href="/"><svg viewBox="0 0 64 64" fill="none"><path d="M18 26h28l-3 22H21z" stroke="#38bdf8" stroke-width="4" stroke-linejoin="round"/><path d="M25 26v-4a7 7 0 0 1 14 0v4" stroke="#38bdf8" stroke-width="4" stroke-linecap="round"/></svg>BayDeep</a>
+<nav><a href="/docs/">Docs</a><a href="/console/">Console</a><a href="https://leapbest.com">Shop ↗</a></nav></header>
+
+<h1>Give Your AI Agent Shopping Capability</h1>
+<p class="sub">One URL turns any MCP client into a shopping agent: product search, price comparison, flights, attributed buy links and order tracking — free, hosted, 5-minute setup.</p>
+
+<h2>The one-line integration</h2>
+<pre>{
+  <span class="k">"mcpServers"</span>: {
+    <span class="k">"baydeep"</span>: { <span class="k">"url"</span>: <span class="c">"https://mcp.baydeep.com/mcp"</span> }
+  }
+}</pre>
+<p>That's the whole setup. Your agent gets <strong>11 tools</strong> — four work immediately without any key:</p>
+<ul>
+<li><code>catalog_overview</code> — what the catalog contains and how to use each product type</li>
+<li><code>shelf_search</code> — search 7,000+ stocked products and fares</li>
+<li><code>flight_search</code> — flight fares by city and date, pre-attributed booking links</li>
+<li><code>shelf_item</code> — full detail for any item</li>
+</ul>
+<p>The remaining tools (live AliExpress search, hot products, detail lookups, <code>convert_link</code>, <code>affiliate_orders</code>) unlock with a <strong>free API key</strong> — mint one in the <a class="doc" href="/console/">console</a>, no signup.</p>
+
+<h2>REST if you prefer</h2>
+<p>The same catalog is available as plain HTTP at <code>api.baydeep.com/v1</code> — <code>/shelf?q=</code>, <code>/search</code>, <code>/item/:id</code>, <code>/convert</code>, <code>/orders</code>, <code>/trial</code>. Works from any language with an HTTP client.</p>
+
+<h2>What your agent can do with it</h2>
+<ul>
+<li><strong>Recommend real products</strong> with price, sales count and rating — from a live, daily-refreshed catalog</li>
+<li><strong>Compare flight fares</strong> across 18+ cities with dates</li>
+<li><strong>Close the loop:</strong> give users attributed buy links, and track every driven purchase in <code>affiliate_orders</code></li>
+<li><strong>Earn:</b> you earn a commission share on commission-eligible purchases your agent drives</li>
+</ul>
+
+<h2>Why a gateway instead of a direct AliExpress integration</h2>
+<p>Direct merchant integrations mean app reviews, API contracts, quota management, currency handling and affiliate-network onboarding — weeks of work before your agent's first search. A gateway packages all of it as normalized tools with a keyless trial tier. BayDeep's catalog is AliExpress affiliate inventory plus travel (Aviasales, Trip.com) — one integration, multiple merchants, commission on all of it.</p>
+
+<div class="cta"><strong>Try it now:</strong> <a href="/console/">mint a free key</a> · <a href="/docs/quickstart.html">5-minute quickstart</a> · <a href="/docs/">full docs</a></div>
+
+<div class="rel">
+<h2>Related reading</h2>
+<a href="/learn/make-money-with-ai-agents.html">How to make money with AI agents — the affiliate-commerce model</a>
+<a href="/docs/">BayDeep API documentation</a>
+</div>
+
+<footer>BayDeep — the e-commerce plugin for AI agents · part of the Deep family · <a href="https://github.com/MeshTok/baydeep">source on GitHub</a></footer>
+</div>
+</body>
+</html>

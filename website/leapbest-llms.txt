@@ -1,0 +1,26 @@
+# LeapBest — deals, flights and hotels for humans
+
+> LeapBest is the consumer storefront of the BayDeep catalog: daily-rotated AliExpress deals, flight fares (Aviasales partners) and hotel stays (Trip.com partners). Built on the BayDeep agent commerce gateway (https://baydeep.com).
+
+## Browse
+- Home: https://leapbest.com/
+- All deals (paginated): https://leapbest.com/deals/1.html
+- Flights (filterable by city/date): https://leapbest.com/flights.html
+- Hotels (18 cities): https://leapbest.com/hotels.html
+- AI Shopper (ask for deals): https://leapbest.com/ai.html
+
+## Categories
+- Electronics: https://leapbest.com/electronics/
+- Home & Living: https://leapbest.com/home-living/
+- Fashion & Bags: https://leapbest.com/fashion/
+- Sports & Outdoors: https://leapbest.com/sports/
+- Toys & Hobbies: https://leapbest.com/toys-hobbies/
+- Beauty & Health: https://leapbest.com/beauty-health/
+- Auto & Moto: https://leapbest.com/auto-moto/
+- Pet Supplies: https://leapbest.com/pet-supplies/
+- Tools & DIY: https://leapbest.com/tools-diy/
+- Office & School: https://leapbest.com/office-school/
+
+## Behind the scenes
+- Same catalog via MCP/REST: https://baydeep.com (11 tools, free API key)
+- Deals rotate daily; fares refresh daily; category pages rebuild on each stock sync
