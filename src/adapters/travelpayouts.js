@@ -100,19 +100,22 @@ async function flightPrices(opts = {}) {
     ['DXB', 'BKK'], ['DOH', 'SIN'], ['IST', 'PEK'], ['HKG', 'DPS'],
   ];
   const currency = (opts.currency || 'usd').toLowerCase();
-  const depart = opts.depart_date || iso(7);
+  // 多日期窗口：5 个出发日期（Date 筛选下拉有多个可选日期），逐日期调用（prices_for_dates 不支持范围语法）
+  const dates = opts.dates || [iso(7), iso(10), iso(14), iso(21), iso(28)];
   const oneWay = opts.one_way !== false;
   const out = [];
   const errs = [];
   for (const [origin, destination] of routes) {
-    const u = `${BASE}/aviasales/v3/prices_for_dates?origin=${origin}&destination=${destination}` +
-      `&departure_at=${depart}${oneWay ? '&one_way=true' : ''}&currency=${currency}&token=${TOKEN}&limit=8&sorting=price`;
-    try {
-      const r = await getJson(u);
-      const arr = (r && r.data) || [];
-      for (const d of arr) out.push(normFlight(d, { origin, destination, currency, depart_date: depart }));
-    } catch (e) { errs.push(`${origin}-${destination}: ${e.message.slice(0, 60)}`); }
-    await new Promise(r => setTimeout(r, 300));
+    for (const depart of dates) {
+      const u = `${BASE}/aviasales/v3/prices_for_dates?origin=${origin}&destination=${destination}` +
+        `&departure_at=${depart}${oneWay ? '&one_way=true' : ''}&currency=${currency}&token=${TOKEN}&limit=5&sorting=price`;
+      try {
+        const r = await getJson(u);
+        const arr = (r && r.data) || [];
+        for (const d of arr) out.push(normFlight(d, { origin, destination, currency, depart_date: depart }));
+      } catch (e) { errs.push(`${origin}-${destination}@${depart}: ${e.message.slice(0, 50)}`); }
+      await new Promise(r => setTimeout(r, 250));
+    }
   }
   return { list: out, errs };
 }
