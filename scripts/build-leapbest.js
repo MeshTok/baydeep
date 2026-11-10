@@ -159,7 +159,7 @@ footer{max-width:1280px;margin:26px auto 0;padding:18px 20px;color:#8a94a8;font-
 const FAVICON = `<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b1b33'/%3E%3Cpath d='M16 44h32M22 40l12-16 8 10' fill='none' stroke='%23ff5a1f' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">`;
 
 function channelsHTML(active) {
-  const tabs = [['/', 'Home'], ['/deals/1.html', 'All Deals'], ['/flights.html', '✈ Flights']];
+  const tabs = [['/', 'Home'], ['/deals/1.html', 'All Deals'], ['/flights.html', '✈ Flights'], ['/ai.html', '🤖 AI 买手']];
   return `<nav class="channels">${tabs.map(([u, t]) => `<a href="${u}"${u === active ? ' class="on"' : ''}>${t}</a>`).join('')}<span class="soon">🔥 Hotels · eSIM · Activities — coming soon</span></nav>`;
 }
 function headerTopHTML(q) {
@@ -265,18 +265,40 @@ function indexHTML() {
   const todays = dailyStream.slice(0, 40);
   const bestSellers = [...goods].sort((a, b) => (b.sales || 0) - (a.sales || 0)).slice(0, 20);
   const topFares = [...flights].sort((a, b) => (a.price ?? 1e15) - (b.price ?? 1e15)).slice(0, 8);
+  const aiCard = `
+<div class="aicard">
+<div class="aihead"><span class="aiic">🤖</span><div><b>AI Shopper</b><div style="font-size:12px;color:#77839a">compare · check price · decide for you</div></div><a class="aigo" href="/ai.html">Open chat ›</a></div>
+<a class="aiq" href="/ai.html?q=air%20fryer%20deals">What air fryer deals are there?</a>
+<a class="aiq" href="/ai.html?q=flights%20to%20Bangkok">Flights to Bangkok this month?</a>
+<a class="aiq" href="/ai.html?q=iphone%20case%20under%20%243">iPhone case under $3?</a>
+</div>`;
   return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>LeapBest — Leap to the best price | AliExpress deals up to 90% off</title>
 <meta name="description" content="Live deals across ${list.length.toLocaleString()}+ products from AliExpress plus flight fares — fresh picks daily. Ships to 200+ countries.">
 ${FAVICON}<link rel="canonical" href="https://leapbest.com/">
-<style>${CSS}</style></head><body>${headerTopHTML('')}${channelsHTML('/')}<main>
+<style>${CSS}
+.aicard{background:#0b1b33;color:#fff;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px}
+.aicard .aihead{display:flex;align-items:center;gap:10px}
+.aicard .aiic{font-size:26px}
+.aicard b{font-size:15px}
+.aicard .aigo{margin-left:auto;background:#ff5a1f;color:#fff;font-size:12px;font-weight:700;border-radius:7px;padding:6px 12px;white-space:nowrap}
+.aicard .aiq{background:rgba(255,255,255,.08);border-radius:8px;padding:8px 11px;font-size:12.5px;color:#dbe6f5}
+.aicard .aiq:hover{background:rgba(255,255,255,.16)}
+.split{display:grid;grid-template-columns:1fr 300px;gap:18px;align-items:start}
+@media(max-width:980px){.split{grid-template-columns:1fr}}
+</style></head><body>${headerTopHTML('')}${channelsHTML('/')}<main>
 ${catbarHTML()}
 <h2 class="sec">✈ Flight deals <small>refreshed daily · via Aviasales</small><a class="more" href="/flights.html">All flights ›</a></h2>
 <div class="fscroll">${topFares.map(fminiHTML).join('')}</div>
-<h2 class="sec">🔥 Today's deals <small>rotated daily</small><a class="more" href="/deals/2.html">Next page ›</a></h2>
-<div class="grid">${todays.map(cardHTML).join('')}</div>
-<div class="pager"><a href="/deals/1.html">Browse all ${PAGES_N} pages ›</a></div>
-<h2 class="sec">⭐ Best sellers</h2><div class="grid">${bestSellers.map(cardHTML).join('')}</div>
+<div class="split">
+  <div>
+    <h2 class="sec">🔥 Today's deals <small>rotated daily</small><a class="more" href="/deals/2.html">Next page ›</a></h2>
+    <div class="grid">${todays.map(cardHTML).join('')}</div>
+    <div class="pager"><a href="/deals/1.html">Browse all ${PAGES_N} pages ›</a></div>
+    <h2 class="sec">⭐ Best sellers</h2><div class="grid">${bestSellers.map(cardHTML).join('')}</div>
+  </div>
+  <aside>${aiCard}</aside>
+</div>
 <div class="soonrow"><span>🛏 Hotels — soon</span><span>📶 eSIM data — soon</span><span>🎟 Activities — soon</span><span>🛒 Temu &amp; Shein — soon</span></div>
 </main>${footerHTML}</body></html>`;
 }
@@ -350,6 +372,80 @@ fetch('/api/hot').then(r=>r.json()).then(d=>{const t=d.top||[];if(t.length)docum
 </script></body></html>`;
 }
 
+/* AI 买手对话页（tuifan AI 助手同款思路）：意图识别（flight/goods）→ 调 /api/search → 结果卡流式呈现。
+ * 体验是对话，实际是结构化查询——零 LLM 依赖，后续可无缝替换为真 LLM（工具仍是 baydeep 网关）。 */
+function aiHTML() {
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Shopper — ask, compare, leap | LeapBest</title>
+<meta name="description" content="Ask the LeapBest AI shopper: find AliExpress deals, compare flight fares, get attributed buy links.">
+${FAVICON}<link rel="canonical" href="https://leapbest.com/ai.html"><style>${CSS}
+.chatwrap{max-width:760px;margin:0 auto}
+.chatbox{background:#fff;border:1px solid #e8ebf2;border-radius:12px;min-height:420px;max-height:60vh;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:12px}
+.msg{max-width:86%;border-radius:12px;padding:10px 14px;font-size:13.5px;line-height:1.5}
+.msg.you{align-self:flex-end;background:#ff5a1f;color:#fff}
+.msg.bot{align-self:flex-start;background:#f0f2f8;color:#182234}
+.msg.bot .cards{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px}
+.msg.bot .mini{background:#fff;border:1px solid #e8ebf2;border-radius:8px;overflow:hidden;display:flex;gap:8px;padding:6px}
+.msg.bot .mini img{width:52px;height:52px;object-fit:cover;border-radius:6px;background:#f0f2f8}
+.msg.bot .mini .t{font-size:11.5px;line-height:1.3;color:#243;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.msg.bot .mini .p{font-size:12.5px;font-weight:800;color:#ff5a1f}
+.askrow{display:flex;gap:8px;margin-top:12px}
+.askrow input{flex:1;border:1.5px solid #d9dfea;border-radius:10px;padding:11px 14px;font-size:14px;outline:none}
+.askrow input:focus{border-color:#ff5a1f}
+.askrow button{border:0;background:#ff5a1f;color:#fff;font-weight:700;border-radius:10px;padding:11px 22px;cursor:pointer}
+.qchips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.qchips button{border:1px solid #d9dfea;background:#fff;border-radius:999px;padding:6px 13px;font-size:12.5px;color:#445;cursor:pointer}
+.qchips button:hover{border-color:#ff5a1f;color:#ff5a1f}
+</style></head><body>${headerTopHTML('')}${channelsHTML('/ai.html')}<main>
+<div class="chatwrap">
+<h2 class="sec">🤖 AI Shopper <small>ask me to find deals or flights — powered by BayDeep gateway</small></h2>
+<div class="chatbox" id="box"><div class="msg bot">Hi! Tell me what you're shopping for — a product ("air fryer under $50") or a trip ("PEK to SIN flights"). I'll dig the catalog for you.</div></div>
+<div class="qchips">
+<button data-q="air fryer deals">air fryer deals</button>
+<button data-q="pet supplies">pet supplies</button>
+<button data-q="phone case under $3">phone case under $3</button>
+<button data-q="flights BKK to SIN">flights BKK → SIN</button>
+<button data-q="cheapest flights to Tokyo">flights to Tokyo</button>
+</div>
+<div class="askrow"><input id="ask" placeholder="e.g. warm LED lights for bedroom… (or: LHR to PEK flights)" onkeydown="if(event.key==='Enter')ask()"><button onclick="ask()">Ask</button></div>
+</div></main>${footerHTML}
+<script>
+const box=document.getElementById('box');
+const E=s=>String(s==null?'':s).replace(/[<>&"]/g,'');
+function addYou(t){const d=document.createElement('div');d.className='msg you';d.textContent=t;box.appendChild(d);box.scrollTop=box.scrollHeight;}
+function addBot(html){const d=document.createElement('div');d.className='msg bot';d.innerHTML=html;box.appendChild(d);box.scrollTop=box.scrollHeight;return d;}
+function thinking(){return addBot('Digging the catalog<span id="dots">…</span>');}
+async function ask(q){
+  q=(q||'').trim()||document.getElementById('ask').value.trim();
+  if(!q)return;
+  document.getElementById('ask').value='';
+  addYou(q);
+  const t=thinking();
+  const fl=q.match(/\\b(?:flights?|fare|fly)\\b/i)&&q.match(/\\b([A-Z]{3}|[a-z]{3})\\b.*\\b(?:to)\\b.*\\b([A-Za-z]{3})\\b|\\b([A-Za-z]{3})\\s*(?:to|→)\\s*([A-Za-z]{3})\\b/i);
+  try{
+    if(/flight|fly|fare/i.test(q)){
+      const m=q.toUpperCase().match(/\\b([A-Z]{3})\\b[^A-Z]*\\b(?:TO|→)\\b[^A-Z]*\\b([A-Z]{3})\\b/);
+      const r=await fetch('/flights-data.json');const all=await r.json();
+      let list=all.filter(f=>(!m||f.o===m[1])&&(!m||f.d===m[2]));
+      list.sort((a,b)=>a.price-b.price);
+      const top=list.slice(0,6);
+      t.innerHTML='Found <b>'+list.length+'</b> fares'+(m?' for '+m[1]+' → '+m[2]:'')+'. Cheapest first:'+
+        (top.length?'<div class="cards">'+top.map(f=>'<a class="mini" href="/go/'+E(f.id)+'" rel="nofollow sponsored"><div><div class="t">'+E(f.o)+' → '+E(f.d)+'<br>'+E((f.dep||'').slice(0,16))+'</div><div class="p">$'+Number(f.price).toFixed(2)+'</div></div></a>').join('')+'</div>':'<br>No fares on this route yet — try Clear filters on the flights page, or another date.');
+    }else{
+      const r=await fetch('/api/search?q='+encodeURIComponent(q.replace(/deals|under \\$?\\d+|cheap(est)?/gi,'').trim()||q));
+      const d=await r.json();
+      const items=(d.items||[]).slice(0,6);
+      t.innerHTML='Top picks from <b>'+(d.total||items.length)+'</b> matches:'+
+        (items.length?'<div class="cards">'+items.map(i=>'<a class="mini" href="/p/'+E(i.goods_id)+'.html"><img loading="lazy" src="'+E(i.pict_url)+'"><div><div class="t">'+E(i.title).slice(0,70)+'</div><div class="p">$'+Number(i.price).toFixed(2)+(i.discount?' <span style="color:#1a7f37">-'+i.discount+'%</span>':'')+'</div></div></a>').join('')+'</div>':'<br>No match — try a broader keyword.');
+    }
+  }catch(e){t.innerHTML='Search hiccup — try again in a moment.';}
+}
+document.querySelectorAll('.qchips button').forEach(b=>b.onclick=()=>ask(b.dataset.q));
+const qp=new URLSearchParams(location.search).get('q');
+if(qp)ask(qp);
+</script></body></html>`;
+}
+
 function main() {
   fs.mkdirSync(path.join(OUT, 'p'), { recursive: true });
   fs.mkdirSync(path.join(OUT, 'deals'), { recursive: true });
@@ -364,6 +460,7 @@ function main() {
   fs.writeFileSync(path.join(OUT, 'index.html'), indexHTML());
   fs.writeFileSync(path.join(OUT, 'flights.html'), flightsHTML());
   fs.writeFileSync(path.join(OUT, 'search.html'), searchHTML());
+  fs.writeFileSync(path.join(OUT, 'ai.html'), aiHTML());
   console.log(`[build] DONE pdp=${n} deal-pages=${PAGES_N} flights=${flights.length} seed=${SEED} goods=${goods.length} → ${path.relative(ROOT, OUT)}`);
 }
 main();
