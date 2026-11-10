@@ -65,4 +65,15 @@ function setKeyStatus(agentId, status) {
   return k || null;
 }
 
-module.exports = { findByRaw, findById, createKey, setKeyStatus };
+// BYO 归因：开发者绑定自己的 AliExpress Portals tracking_id——
+// 该 key 驱动的购买佣金由 AliExpress 按其联盟规则直接结算给开发者（BayDeep 不代收不代付）
+function setTrackingId(agentId, trackingId) {
+  const k = coll.data.keys.find((x) => x.agent_id === agentId);
+  if (!k) return null;
+  k.tracking_id = String(trackingId || '').slice(0, 40);
+  k.updated_at = new Date().toISOString();
+  store.save('keys');
+  return k;
+}
+
+module.exports = { findByRaw, findById, createKey, setKeyStatus, setTrackingId };

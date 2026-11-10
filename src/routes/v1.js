@@ -3,6 +3,7 @@
 // 响应统一 {schema:'v1', code:'OK', msg:'', data, agent_ref}；开放分层：
 //   无 key：/healthz /v1/trial /v1/shelf*（IP 30/min）；其余全部要 key（实时扇出烧平台配额）。
 const ali = require('../adapters/aliexpress');
+const keys = require('../services/keys');
 const config = require('../config');
 const { ERR } = require('../util');
 const { agentAuth, ipAllowed } = require('../middleware');
@@ -55,8 +56,15 @@ function routes() {
         agent_id: k.agent_id, tier: k.rate_tier, created_at: k.created_at,
         tracking_id: k.tracking_id || null, attribution: k.tracking_id ? 'per-key' : 'shared default',
         default_client_ref: k.default_client_ref || null,
-        share: '3% of attributed purchase volume; only orders whose product commission rate >3% participate (see /v1/orders share_summary). Settlement lands with billing milestone.'
+        partnership: 'commercial partnerships and integration support — contact via baydeep.com'
       });
+    } },
+    { method: 'POST', pattern: '/v1/me/tracking', needsBody: true, handler: (ctx) => {
+      agentAuth(ctx);
+      const tid = String((ctx.body && ctx.body.tracking_id) || '').trim();
+      if (!/^[A-Za-z0-9_-]{4,32}$/.test(tid)) throw ERR.INVALID_PARAM('tracking_id must be 4-32 chars [A-Za-z0-9_-]');
+      const k = keys.setTrackingId(ctx.agentKey.agent_id, tid);
+      return ok(ctx, { tracking_id: k.tracking_id, attribution: 'per-key (BYO AliExpress Portals account — commissions settle directly to you via AliExpress)' });
     } },
     { method: 'GET', pattern: '/v1/search', handler: async (ctx) => {
       agentAuth(ctx);

@@ -20,7 +20,7 @@ const SERVER_INFO = { name: 'baydeep-gateway', version: '0.1.0', title: 'BayDeep
 const TOOLS = [
   {
     name: 'mint_free_key',
-    description: 'SELF-SERVE a free API key — NO signup, NEVER expires, unlocks ALL tools (live AliExpress search, hot products, attributed convert links, your orders). Call this FIRST if any other tool says a key is required. Store the returned key and send it as X-API-Key header (or Authorization: Bearer) on subsequent calls. Rate limit: 30 req/min. Your commission share (3% on eligible purchases) is attributed via this key. Optional client_ref ([A-Za-z0-9-], <=40) = your own end-user id, echoed back on your orders.',
+    description: 'SELF-SERVE a free API key — NO signup, NEVER expires, unlocks ALL tools (live AliExpress search, hot products, attributed convert links, your orders). Call this FIRST if any other tool says a key is required. Store the returned key and send it as X-API-Key header (or Authorization: Bearer) on subsequent calls. Rate limit: 30 req/min. Attribution is bound to this key. Optional client_ref ([A-Za-z0-9-], <=40) = your own end-user id, echoed back on your orders.',
     inputSchema: { type: 'object', properties: {
       client_ref: { type: 'string', description: 'optional: your stable anonymized end-user id ([A-Za-z0-9-], <=40)' }
     } }
@@ -50,7 +50,7 @@ const TOOLS = [
   },
   {
     name: 'convert_link',
-    description: 'Convert any aliexpress.com product/shop/search URL(s) into YOUR affiliate-attributed link(s) (max 10 per call). ALWAYS run items through this before presenting a buy link — attribution is how your 3% share is tracked. Requires a free API key.',
+    description: 'Convert any aliexpress.com product/shop/search URL(s) into YOUR affiliate-attributed link(s) (max 10 per call). ALWAYS run items through this before presenting a buy link — attribution is how agent-driven purchases are tracked. Requires a free API key.',
     inputSchema: { type: 'object', properties: {
       urls: { type: 'string', description: 'comma separated URLs, max 10' },
       link_type: { type: 'number', enum: [0, 2], description: '2=short link (default), 0=original' }
@@ -58,7 +58,7 @@ const TOOLS = [
   },
   {
     name: 'affiliate_orders',
-    description: 'YOUR attributed affiliate orders in a time range (source for your commission settlement & refund tracking). Orders are filtered to your key\'s tracking_id; each order carries share_eligible + share_amount and the page ends with share_summary — your share is 3% of purchase volume, counting ONLY orders whose product commission rate >3%. Requires a free API key.',
+    description: 'YOUR attributed affiliate orders in a time range (source for your commission settlement & refund tracking). Orders are filtered to your key\'s tracking_id; each order carries share_eligible + share_amount and the page ends with share_summary — each order carries share_eligible and share_amount fields. Requires a free API key.',
     inputSchema: { type: 'object', properties: {
       start_time: { type: 'string', description: 'ISO 8601 or yyyy-MM-dd HH:mm:ss (UTC assumed)' },
       end_time: { type: 'string' }, status: { type: 'string', description: 'PENDING | PAID | CLOSED ...' },
@@ -71,8 +71,23 @@ const TOOLS = [
     inputSchema: { type: 'object', properties: {} }
   },
   {
+    name: 'catalog_overview',
+    description: 'WHAT BAYDEEP SELLS: product types currently in the catalog (physical goods from AliExpress, flight fares via Travelpayouts/Aviasales), item counts, top categories, and HOW to search/book each type. Call this FIRST when unsure what the catalog contains. Works WITHOUT any API key. Read-only.',
+    inputSchema: { type: 'object', properties: {} }
+  },
+  {
+    name: 'flight_search',
+    description: 'Search FLIGHT FARES in the catalog (Aviasales/Travelpayouts partners, fares refreshed daily). Filter by origin/destination IATA code (e.g. PEK, JFK, SIN) and optional departure date (YYYY-MM-DD). Items sorted by price; book_url is ALREADY affiliate-attributed — link the user straight to it (no convert_link needed). Works WITHOUT any API key. Read-only.',
+    inputSchema: { type: 'object', properties: {
+      origin: { type: 'string', description: 'origin IATA code, e.g. PEK' },
+      destination: { type: 'string', description: 'destination IATA code, e.g. SIN' },
+      date: { type: 'string', description: 'departure date YYYY-MM-DD (optional)' },
+      page_size: { type: 'number', default: 20, maximum: 50 }
+    } }
+  },
+  {
     name: 'shelf_search',
-    description: 'Search the LOCAL shelf (products stocked by our sync jobs from AliExpress). No platform quota consumed — works WITHOUT any API key (30 req/min per IP). sort=relevance(default when q given)|price|sales|latest; price_min/price_max filter. Items carry detail_url; mint a free key + convert_link to get attributed buy URLs. Read-only.',
+    description: 'Search the LOCAL shelf — physical goods (AliExpress) AND flight fares (Travelpayouts). No platform quota consumed — works WITHOUT any API key (30 req/min per IP). sort=relevance(default when q given)|price|sales|latest; price_min/price_max filter. Goods items carry detail_url (attribute via convert_link with a free key); flight items carry book_url directly. Read-only.',
     inputSchema: { type: 'object', properties: {
       q: { type: 'string' }, sort: { type: 'string', enum: ['relevance', 'price', 'sales', 'latest'] },
       price_min: { type: 'number' }, price_max: { type: 'number' },
@@ -81,7 +96,7 @@ const TOOLS = [
   },
   {
     name: 'shelf_item',
-    description: 'Get one LOCAL shelf item by goods_id (full normalized fields). Works WITHOUT any API key. Read-only.',
+    description: 'Get one LOCAL shelf item by goods_id (full normalized fields; works for goods and flight fares). Works WITHOUT any API key. Read-only.',
     inputSchema: { type: 'object', properties: { goods_id: { type: 'string' } }, required: ['goods_id'] }
   }
 ];
@@ -96,6 +111,38 @@ function trackingOf(ctx) {
 async function dispatchTool(ctx, name, args) {
   switch (name) {
     case 'mint_free_key': return trial.mintTrial(ctx.ip, args.client_ref);
+    case 'catalog_overview': {
+      const o = shelf.overview();
+      const goods = o.platforms.aliexpress || 0;
+      const flights = o.platforms.travelpayouts || 0;
+      const hotels = o.platforms.tripcom || 0;
+      return {
+        service: 'BayDeep — the e-commerce plugin for AI agents',
+        catalog: {
+          total_items: o.total,
+          updated_at: o.updated_at,
+          product_types: [
+            {
+              type: 'physical_goods', platform: 'aliexpress', count: goods,
+              how_to: 'shelf_search(q) to find, shelf_item(goods_id) for detail, then mint_free_key + convert_link(detail_url) for YOUR attributed buy URL'
+            },
+            {
+              type: 'flight_fares', platform: 'travelpayouts/aviasales', count: flights,
+              how_to: 'flight_search(origin,destination[,date]); book_url is pre-attributed, link the user directly'
+            },
+            {
+              type: 'hotel_stays', platform: 'tripcom', count: hotels,
+              how_to: 'shelf_item on ht-<cityid> items; goods_url is a Trip.com hotel list page pre-attributed (AllianceID/SID) — link the user directly'
+            }
+          ],
+          top_categories: o.top_categories,
+          categories_total: o.categories_total,
+          coming_next: ['activities & tours (Viator)', 'eSIM data plans (Airalo)', 'Temu/Shein (Admitad)']
+        },
+        consumer_site: 'https://leapbest.com',
+      };
+    }
+    case 'flight_search': return shelf.searchFlights(args);
     case 'shelf_search': return shelf.searchShelf(args);
     case 'shelf_item': {
       const it = shelf.getItem(args.goods_id);
@@ -140,13 +187,13 @@ const INSTRUCTIONS = [
   'SHOPPING FLOW (most common):',
   '1. search_products with the user ask (q may be natural language; sort=SALE_PRICE_ASC when the user stresses cheap). For repeated/simple lookups prefer shelf_search (quota-free, no key needed).',
   '2. product_detail on shortlisted ids for full fields.',
-  '3. convert_link EVERY url you are about to show as a buy link — attributed links are how your 3% share on purchases is tracked. Always present the converted link to the user.',
+  '3. convert_link EVERY url you are about to show as a buy link — attributed links are how agent-driven purchases are tracked to your key. Always present the converted link to the user.',
   '',
   'POLICY: never recommend medicines or give medical advice. Never put words like cashback/rebate in front of consumers — your share is your business revenue, not a user reward. The user always pays on AliExpress directly; agents never touch money.',
   '',
   'RATE LIMITS: search_products / hot_products / product_detail consume platform quota — do not poll or batch-poll them; prefer shelf tools for repeated lookups.',
   '',
-  'SETTLEMENT: your share is 3% of purchase volume on commission-eligible orders only (product commission rate >3%). affiliate_orders returns your attributed orders (filtered by your tracking_id) with share_eligible / share_amount per order and a share_summary — that is the monthly settlement dataset.',
+  'SETTLEMENT: affiliate_orders returns your attributed orders (filtered by your tracking_id) with share_eligible / share_amount per order and a share_summary — the commission partnership dataset.',
   '',
   'YOUR USERS (optional): pass client_ref ([A-Za-z0-9-], <=40) when minting your key — echoed back on order responses so you can run your own user rewards; the server never interprets it.'
 ].join('\n');
