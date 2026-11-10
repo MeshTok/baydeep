@@ -100,7 +100,7 @@ nav.channels a:hover{color:#fff}
 nav.channels a.on{color:#fff;border-bottom-color:#ff5a1f}
 nav.channels .soon{margin-left:auto;color:#5f6f8e;font-size:12px;padding:10px 6px;white-space:nowrap}
 main{max-width:1280px;margin:0 auto;padding:20px}
-/* 分类导航条（京东/Amazon 式，一行图标大类） */
+/* Category navbar (icon tiles, one row) */
 .catbar{display:grid;grid-template-columns:repeat(10,1fr);gap:8px;margin:6px 0 20px}
 .catbar a{background:#fff;border:1px solid #e8ebf2;border-radius:10px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:5px;font-size:12.5px;color:#33415c;font-weight:600;transition:.15s}
 .catbar a:hover{border-color:#ff5a1f;color:#ff5a1f;box-shadow:0 3px 10px rgba(255,90,31,.12)}
@@ -118,7 +118,7 @@ h2.sec .more{margin-left:auto;font-size:13px;color:#ff5a1f;font-weight:600}
 .card .p s{color:#9aa4b8;font-weight:400;font-size:11.5px;margin-left:5px}
 .card .d{display:inline-block;background:#fff1e8;color:#d1440f;font-size:11px;font-weight:700;border-radius:5px;padding:1px 6px;width:fit-content}
 .card .r{font-size:11.5px;color:#77839a}
-/* 机票横滚条（首页轻露出） */
+/* Flight deals horizontal strip (light) */
 .fscroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x mandatory}
 .fmini{min-width:236px;background:#fff;border:1px solid #e8ebf2;border-radius:10px;padding:11px 13px;display:flex;flex-direction:column;gap:3px;scroll-snap-align:start}
 .fmini .rt{font-size:14px;font-weight:800;color:#0b1b33}
@@ -127,7 +127,7 @@ h2.sec .more{margin-left:auto;font-size:13px;color:#ff5a1f;font-weight:600}
 .fmini .bt{display:flex;align-items:center;justify-content:space-between;margin-top:3px}
 .fmini .pr{font-size:16px;font-weight:800;color:#ff5a1f}
 .fmini .bk{background:#0b1b33;color:#fff;font-size:11.5px;font-weight:700;border-radius:6px;padding:5px 10px}
-/* 机票页筛选栏（Skyscanner 式） */
+/* Flight filter bar (Skyscanner style) */
 .fbar{background:#fff;border:1px solid #e8ebf2;border-radius:12px;padding:14px;display:flex;gap:10px;align-items:end;flex-wrap:wrap;position:sticky;top:56px;z-index:20;box-shadow:0 2px 10px rgba(16,26,50,.06)}
 .fbar .fld{display:flex;flex-direction:column;gap:4px}
 .fbar label{font-size:11px;font-weight:700;color:#5a6a86;text-transform:uppercase;letter-spacing:.3px}
@@ -136,7 +136,7 @@ h2.sec .more{margin-left:auto;font-size:13px;color:#ff5a1f;font-weight:600}
 .fbar .swap{border:1.5px solid #d9dfea;background:#fff;border-radius:8px;padding:8px 12px;cursor:pointer;font-size:15px}
 .fbar .clr{border:0;background:none;color:#ff5a1f;font-weight:700;font-size:13px;cursor:pointer;padding:8px 6px}
 .fbar .cnt{margin-left:auto;font-size:13px;color:#5a6a86}
-/* 航班行式列表 */
+/* Flight row list */
 .flist{display:flex;flex-direction:column;gap:8px;margin-top:14px}
 .frow{background:#fff;border:1px solid #e8ebf2;border-radius:10px;padding:13px 16px;display:grid;grid-template-columns:1.3fr 1.6fr 1fr auto;gap:14px;align-items:center}
 .frow .rt{font-size:16px;font-weight:800;color:#0b1b33}
@@ -149,14 +149,14 @@ h2.sec .more{margin-left:auto;font-size:13px;color:#ff5a1f;font-weight:600}
 .frow .pr{font-size:19px;font-weight:800;color:#ff5a1f;text-align:right}
 .frow .bk{background:#ff5a1f;color:#fff;font-weight:700;border-radius:8px;padding:8px 16px;font-size:13px;white-space:nowrap;justify-self:end}
 .fempty{background:#fff;border:1px dashed #d9dfea;border-radius:10px;padding:30px;text-align:center;color:#77839a}
-/* 分页 */
+/* Pagination */
 .pager{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:26px 0 8px}
 .pager a,.pager span{min-width:36px;text-align:center;padding:6px 10px;border:1px solid #e8ebf2;background:#fff;border-radius:8px;font-size:13px;color:#445}
 .pager a:hover{border-color:#ff5a1f;color:#ff5a1f}
 .pager .cur{background:#ff5a1f;border-color:#ff5a1f;color:#fff;font-weight:700}
 .pager .gap{border:0;background:none}
 .pnote{text-align:center;color:#8a94a8;font-size:12px;margin-bottom:8px}
-/* coming soon 徽章行 */
+/* Coming-soon badges */
 .soonrow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:26px 0 4px}
 .soonrow span{background:#eef1f7;border-radius:999px;padding:5px 14px;font-size:12px;color:#5a6a86}
 .pill{display:inline-block;background:#eef1f7;border-radius:999px;padding:3px 10px;font-size:12px;color:#556;margin:0 6px 6px 0}
