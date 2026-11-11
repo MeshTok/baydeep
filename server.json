@@ -1,0 +1,18 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.meshtok/baydeep",
+  "title": "BayDeep — E-commerce MCP Gateway",
+  "description": "E-commerce MCP gateway: live product deals, attributed buy links, order tracking, flights.",
+  "homepage": "https://baydeep.com",
+  "repository": {
+    "url": "https://github.com/MeshTok/baydeep",
+    "source": "github"
+  },
+  "version": "1.0.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.baydeep.com/mcp"
+    }
+  ]
+}
