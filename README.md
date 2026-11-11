@@ -1,5 +1,7 @@
 # BayDeep — Agent 电商网关（海外）
 
+[![Listed on mcpservers.org](https://mcpservers.org/badge.svg)](https://mcpservers.org/servers/meshtok/baydeep) [![npm: dsh-plugin-baydeep](https://img.shields.io/npm/v/dsh-plugin-baydeep.svg)](https://www.npmjs.com/package/dsh-plugin-baydeep)
+
 > The e-commerce plugin for AI agents. 商品搜索、比价、购买链接、订单履约——淘宝/京东/拼多多 → 任何 AI Agent。
 > 设计文档：agentmall 仓 DESIGN-海外Agent电商网关调研-20261014.md 与 DESIGN-Agent电商网关-20261014.md（副本在 docs/）
 
